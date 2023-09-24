@@ -1,4 +1,4 @@
-# Simulation-of-Underwater-Gliders
+# Underwater Glider Simulator
 
 ## TO-Do
 
