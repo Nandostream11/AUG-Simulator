@@ -3,26 +3,28 @@ import math
 import utils
 import os
 import pdb
+import json
 from Parameters.slocum import SLOCUM_PARAMS
+from Modeling.dynamics import Dynamics
 
 
 class Vertical_Motion:
-    def __init__(self):            
-
+    def __init__(self):
         self.mass_params = SLOCUM_PARAMS.GLIDER_CONFIG
         self.hydro_params = SLOCUM_PARAMS.HYDRODYNAMICS
         self.vars = SLOCUM_PARAMS.VARIABLES
-                
-        self.initialization()
-                
-    def constants(self):
-        self.g = 9.816
-        self.I3 = np.eye(3)
-        self.Z3 = np.zeros(3)
 
-    def initialization(self):
-        
-        self.constants()
+        self.initialization("SLOCUM")
+
+    def initialization(self, glider_name="SLOCUM"):
+        self.g, self.I3, self.Z3, self.i_hat, self.j_hat, self.k_hat = utils.constants()
+
+        if glider_name == "SLOCUM":
+            from Parameters.slocum import SLOCUM_PARAMS as P
+
+        self.mass_params = P.GLIDER_CONFIG
+        self.hydro_params = P.HYDRODYNAMICS
+        self.vars = P.VARIABLES
 
         self.mh = self.mass_params.HULL_MASS
         self.mw = self.mass_params.FIXED_POINT_MASS
@@ -36,9 +38,11 @@ class Vertical_Motion:
         self.m0 = self.mt - self.m
 
         self.Mf = np.diag(
-            [self.mass_params.MF1, self.mass_params.MF2, self.mass_params.MF3])
+            [self.mass_params.MF1, self.mass_params.MF2, self.mass_params.MF3]
+        )
         self.Jf = np.diag(
-            [self.mass_params.J1, self.mass_params.J2, self.mass_params.J3])
+            [self.mass_params.J1, self.mass_params.J2, self.mass_params.J3]
+        )
 
         self.M = self.mh * self.I3 + self.Mf
         self.J = self.Jf  # J = Jf + Jh
@@ -52,104 +56,203 @@ class Vertical_Motion:
         self.KOmega1 = self.hydro_params.KOmega1
         self.KOmega2 = self.hydro_params.KOmega2
 
-        [self.rp1, self.rp2, self.rp3] = [
-            self.vars.rp1, self.vars.rp2, self.vars.rp3]
-        [self.rb1, self.rb2, self.rb3] = [
-            self.vars.rb1, self.vars.rb2, self.vars.rb3]
+        [self.rp1, self.rp2, self.rp3] = [self.vars.rp1, self.vars.rp2, self.vars.rp3]
+        [self.rb1, self.rb2, self.rb3] = [self.vars.rb1, self.vars.rb2, self.vars.rb3]
+        [self.rw1, self.rw2, self.rw3] = [self.vars.rw1, self.vars.rw2, self.vars.rw3]
 
         self.glide_angle_deg = self.vars.GLIDE_ANGLE
         self.V_d = self.vars.SPEED
-        self.u_ballast_rate = self.vars.BALLAST_RATE
-        
+        self.ballast_rate = self.vars.BALLAST_RATE
+
         self.set_first_run_params()
-        
+
     def set_first_run_params(self):
-        self.b0 = np.array([0.0, 0.0, 0.0]).transpose()
+        self.n1_0 = np.array([0.0, 0.0, 0.0]).transpose()
         self.Omega0 = np.array([0.0, 0.0, 0.0]).transpose()
-        self.phi0 = self.mass_params.PHI
+        self.phi = self.mass_params.PHI
         self.theta0 = self.mass_params.THETA
-        self.psi0 = self.mass_params.PSI
-        
+        self.psi = self.mass_params.PSI
+
         self.Pp = np.array([0.0, 0.0, 0.0]).transpose()
         self.Pb = np.array([0.0, 0.0, 0.0]).transpose()
         self.Pw = np.array([0.0, 0.0, 0.0]).transpose()
-        
 
     def set_desired_trajectory(self):
+        self.E_i_d = np.array(
+            [
+                math.radians(-self.glide_angle_deg),
+                math.radians(self.glide_angle_deg),
+                math.radians(-self.glide_angle_deg),
+                math.radians(self.glide_angle_deg),
+            ]
+        )
 
-        self.E_i_d = np.array([math.radians(-self.glide_angle_deg), math.radians(self.glide_angle_deg),
-                               math.radians(-self.glide_angle_deg), math.radians(self.glide_angle_deg)])
+        self.lim1 = math.degrees(
+            math.atan(
+                2
+                * (self.KD / self.KL)
+                * (
+                    self.KL0 / self.KL
+                    + math.sqrt(math.pow(self.KL0 / self.KL, 2) + self.KD0 / self.KD)
+                )
+            )
+        )
 
-        lim1 = math.degrees(math.atan(2*(self.KD/self.KL)*(self.KL0/self.KL +
-                            math.sqrt(math.pow(self.KL0/self.KL, 2) + self.KD0/self.KD))))
-
-        lim2 = math.degrees(math.atan(2*(self.KD/self.KL)*(self.KL0/self.KL -
-                            math.sqrt(math.pow(self.KL0/self.KL, 2) + self.KD0/self.KD))))
+        self.lim2 = math.degrees(
+            math.atan(
+                2
+                * (self.KD / self.KL)
+                * (
+                    self.KL0 / self.KL
+                    - math.sqrt(math.pow(self.KL0 / self.KL, 2) + self.KD0 / self.KD)
+                )
+            )
+        )
 
         l = len(self.E_i_d)
 
         for i in range(l):
-
             e_i_d = self.E_i_d[i]
 
-            print('Iteration {} | Desired glide angle in deg = {}'.format(i, math.degrees(e_i_d)))
+            print(
+                "Iteration {} | Desired glide angle in deg = {}".format(
+                    i, math.degrees(e_i_d)
+                )
+            )
 
             if e_i_d > 0:
-                glider_direction = 'U'
-                u_ballast_rate = -abs(self.u_ballast_rate)
-                print('Glider moving in upward direction\n')
+                self.glider_direction = "U"
+                self.ballast_rate = -abs(self.ballast_rate)
+                print("Glider moving in upward direction\n")
 
             elif e_i_d < 0:
-                glider_direction = 'D'
-                u_ballast_rate = abs(self.u_ballast_rate)
-                print('Glider moving in downward direction\n')
+                self.glider_direction = "D"
+                self.ballast_rate = abs(self.ballast_rate)
+                print("Glider moving in downward direction\n")
 
-            alpha_d = (1/2)*(self.KL/self.KD)*math.tan(e_i_d)*(-1 + math.sqrt(1 - 4*(self.KD /
-                                                                                     math.pow(self.KL, 2))*(1/math.tan(e_i_d))*(self.KD0*(1/math.tan(e_i_d)) + self.KL0)))
+            self.alpha_d = (
+                (1 / 2)
+                * (self.KL / self.KD)
+                * math.tan(e_i_d)
+                * (
+                    -1
+                    + math.sqrt(
+                        1
+                        - 4
+                        * (self.KD / math.pow(self.KL, 2))
+                        * (1 / math.tan(e_i_d))
+                        * (self.KD0 * (1 / math.tan(e_i_d)) + self.KL0)
+                    )
+                )
+            )
 
-            mb_d = (self.m - self.mh - self.mm) + (1/self.g) * (-math.sin(e_i_d)*(self.KD0 + self.KD *
-                                                                                  math.pow(alpha_d, 2)) + math.cos(e_i_d)*(self.KL0 + self.KL*alpha_d)) * math.pow(self.V_d, 2)
+            self.mb_d = (self.m - self.mh - self.mm) + (1 / self.g) * (
+                -math.sin(e_i_d) * (self.KD0 + self.KD * math.pow(self.alpha_d, 2))
+                + math.cos(e_i_d) * (self.KL0 + self.KL * self.alpha_d)
+            ) * math.pow(self.V_d, 2)
 
-            theta_d = e_i_d + alpha_d
+            self.theta_d = e_i_d + self.alpha_d
 
-            v1_d = self.V_d * math.cos(alpha_d)
-            v3_d = self.V_d * math.sin(alpha_d)
+            self.v1_d = self.V_d * math.cos(self.alpha_d)
+            self.v3_d = self.V_d * math.sin(self.alpha_d)
 
-            Pp1_d = self.mm * v1_d
-            Pp3_d = self.mm * v3_d
-            
-            Pb1_d = self.mb * v1_d
-            Pb3_d = self.mb * v3_d            
+            self.Pp1_d = self.mm * self.v1_d
+            self.Pp3_d = self.mm * self.v3_d
 
-            m0_d = mb_d + self.mh + self.mm - self.m
+            self.Pb1_d = self.mb * self.v1_d
+            self.Pb3_d = self.mb * self.v3_d
 
-            self.rp1_d = -self.rp3 * math.tan(theta_d) + (1/(self.mm*self.g*math.cos(theta_d))) * \
-                ((self.Mf[2]-self.Mf[0])*v1_d*v3_d +
-                 (self.KM0+self.KM*alpha_d)*math.pow(self.V_d, 2))
-                
-            
+            self.m0_d = self.mb_d + self.mh + self.mm - self.m
+
+            self.rp1_d = -self.rp3 * math.tan(self.theta_d) + (
+                1 / (self.mm * self.g * math.cos(self.theta_d))
+            ) * (
+                (self.Mf[2, 2] - self.Mf[0, 0]) * self.v1_d * self.v3_d
+                + (self.KM0 + self.KM * self.alpha_d) * math.pow(self.V_d, 2)
+            )
+
+            self.save_json()
+
             if i == 0:
-                
-                Z = [self.b0,
-                     self.Omega0,
-                     [v1_d, 0.0, v3_d],
-                     [self.rp1_d, self.rp2, self.rp3],
-                     [self.rb1, self.rb2, self.rb3],
-                     [Pp1_d, self.Pp[1], Pp3_d],
-                     [Pb1_d, self.Pb[1], Pb3_d],
-                     self.Pw,
-                     mb_d,
-                     self.theta0]
-            
+                z = [
+                    self.n1_0,
+                    self.Omega0,
+                    [self.v1_d, 0.0, self.v3_d],
+                    [self.rp1_d, self.rp2, self.rp3],
+                    [self.rb1, self.rb2, self.rb3],
+                    [self.Pp1_d, self.Pp[1], self.Pp3_d],
+                    [self.Pb1_d, self.Pb[1], self.Pb3_d],
+                    self.Pw,
+                    self.mb_d,
+                    self.theta0,
+                    self.glider_direction,
+                ]
+
             else:
-                
-                Z = None                
-        
+                z = None
+                # empty arrays
+
+            eom = Dynamics(z)
+            Z = eom.set_eom()
+
+    def save_json(self):
+        glide_vars = {}
+
+        glide_vars["alpha_d"] = self.alpha_d
+        glide_vars["glide_dir"] = self.glider_direction
+        glide_vars["glide_angle_deg"] = self.glide_angle_deg
+        glide_vars["lim1"] = self.lim1
+        glide_vars["lim2"] = self.lim2
+        glide_vars["theta_d"] = self.theta_d
+        glide_vars["mb_d"] = self.mb_d
+        glide_vars["v1_d"] = self.v1_d
+        glide_vars["v3_d"] = self.v3_d
+        glide_vars["Pp1_d"] = self.Pp1_d
+        glide_vars["Pp3_d"] = self.Pp3_d
+        glide_vars["Pb1_d"] = self.Pb1_d
+        glide_vars["Pb3_d"] = self.Pb3_d
+        glide_vars["m0_d"] = self.m0_d
+        glide_vars["rp1_d"] = self.rp1_d
+        glide_vars["rp2"] = self.rp2
+        glide_vars["rp3"] = self.rp3
+        glide_vars["rb1"] = self.rb1
+        glide_vars["rb2"] = self.rb2
+        glide_vars["rb3"] = self.rb3
+        glide_vars["rw1"] = self.rw1
+        glide_vars["rw2"] = self.rw2
+        glide_vars["rw3"] = self.rw3
+        glide_vars["phi"] = self.phi
+        glide_vars["theta0"] = self.theta0
+        glide_vars["psi"] = self.psi
+
+        glide_vars["Mf"] = self.Mf.tolist()
+        glide_vars["M"] = self.M.tolist()
+        glide_vars["J"] = self.J.tolist()
+        glide_vars["KL"] = self.KL
+        glide_vars["KL0"] = self.KL0
+        glide_vars["KD"] = self.KD
+        glide_vars["KD0"] = self.KD0
+        glide_vars["KM"] = self.KM
+        glide_vars["KM0"] = self.KM0
+        glide_vars["KOmega1"] = self.KOmega1
+        glide_vars["KOmega2"] = self.KOmega2
+        glide_vars["desired_glide_speed"] = self.V_d
+        glide_vars["ballast_rate"] = self.ballast_rate
+        glide_vars["mh"] = self.mh
+        glide_vars["mb"] = self.mb
+        glide_vars["mw"] = self.mw
+        glide_vars["mm"] = self.mm
+        glide_vars["m"] = self.m
+        glide_vars["m0"] = self.m0
+        glide_vars["mt"] = self.mt
+
+        utils.save_json(glide_vars)
+
     def plots(self):
         pass
 
 
-if __name__ == '__main__':
-    
+if __name__ == "__main__":
     Z = Vertical_Motion()
     Z.set_desired_trajectory()
+    # Z.save_json()
