@@ -12,3 +12,5 @@
 [] rw1_d
 
 Save the parameters in json and load
+
+Revise all matrix multiplications

@@ -40,10 +40,11 @@ def transformationMatrix(phi, theta, psi):
 
 
 def unit_vecs(r):
-    mag = math.sqrt(math.pow(r[0], 2) + math.pow(r[1], 2) + math.pow(r[2], 2))
-    r_c = (1 / mag) * r
+    # mag = math.sqrt(math.pow(r[0], 2) + math.pow(r[1], 2) + math.pow(r[2], 2))
 
-    return r_c
+    # return (1 / mag) * r
+
+    return np.array([[0, -r[2], r[1]], [r[2], 0, -r[0]], [-r[1], r[0], 0]])
 
 
 def constants():
@@ -63,5 +64,7 @@ def save_json(vars, path="vars/glider_variables.json"):
         json.dump(vars, file, separators=(",", ":"), sort_keys=True, indent=4)
 
 
-def load_json():
-    pass
+def load_json(path="vars/glider_variables.json"):
+    file = open(path)
+
+    return json.load(file)

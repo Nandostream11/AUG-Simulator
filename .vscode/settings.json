@@ -1,6 +1,6 @@
 {
     "[python]": {
-        "editor.defaultFormatter": "joslarson.black-vscode"
+        "editor.defaultFormatter": "ms-python.black-formatter"
     },
     "python.formatting.provider": "none"
 }

@@ -2,7 +2,6 @@ import numpy as np
 import math
 import utils
 import os
-import pdb
 import json
 from Parameters.slocum import SLOCUM_PARAMS
 from Modeling.dynamics import Dynamics
@@ -78,6 +77,7 @@ class Vertical_Motion:
         self.Pw = np.array([0.0, 0.0, 0.0]).transpose()
 
     def set_desired_trajectory(self):
+        # sourcery skip: use-fstring-for-formatting
         self.E_i_d = np.array(
             [
                 math.radians(-self.glide_angle_deg),
@@ -111,7 +111,7 @@ class Vertical_Motion:
 
         l = len(self.E_i_d)
 
-        for i in range(l):
+        for i in range(1):
             e_i_d = self.E_i_d[i]
 
             print(
@@ -173,8 +173,9 @@ class Vertical_Motion:
 
             self.save_json()
 
+            # These are the initial conditions at every peak of the sawtooth trajectory
             if i == 0:
-                z = [
+                z_in = [
                     self.n1_0,
                     self.Omega0,
                     [self.v1_d, 0.0, self.v3_d],
@@ -185,47 +186,48 @@ class Vertical_Motion:
                     self.Pw,
                     self.mb_d,
                     self.theta0,
-                    self.glider_direction,
                 ]
 
             else:
-                z = None
+                z_in = None
                 # empty arrays
 
-            eom = Dynamics(z)
+            # print(z)
+
+            eom = Dynamics(z_in)
             Z = eom.set_eom()
 
     def save_json(self):
-        glide_vars = {}
+        glide_vars = {
+            "alpha_d": self.alpha_d,
+            "glide_dir": self.glider_direction,
+            "glide_angle_deg": self.glide_angle_deg,
+            "lim1": self.lim1,
+            "lim2": self.lim2,
+            "theta_d": self.theta_d,
+            "mb_d": self.mb_d,
+            "v1_d": self.v1_d,
+            "v3_d": self.v3_d,
+            "Pp1_d": self.Pp1_d,
+            "Pp3_d": self.Pp3_d,
+            "Pb1_d": self.Pb1_d,
+            "Pb3_d": self.Pb3_d,
+            "m0_d": self.m0_d,
+            "rp1_d": self.rp1_d,
+            "rp2": self.rp2,
+            "rp3": self.rp3,
+            "rb1": self.rb1,
+            "rb2": self.rb2,
+            "rb3": self.rb3,
+            "rw1": self.rw1,
+            "rw2": self.rw2,
+            "rw3": self.rw3,
+            "phi": self.phi,
+            "theta0": self.theta0,
+            "psi": self.psi,
+            "Mf": self.Mf.tolist()
+        }
 
-        glide_vars["alpha_d"] = self.alpha_d
-        glide_vars["glide_dir"] = self.glider_direction
-        glide_vars["glide_angle_deg"] = self.glide_angle_deg
-        glide_vars["lim1"] = self.lim1
-        glide_vars["lim2"] = self.lim2
-        glide_vars["theta_d"] = self.theta_d
-        glide_vars["mb_d"] = self.mb_d
-        glide_vars["v1_d"] = self.v1_d
-        glide_vars["v3_d"] = self.v3_d
-        glide_vars["Pp1_d"] = self.Pp1_d
-        glide_vars["Pp3_d"] = self.Pp3_d
-        glide_vars["Pb1_d"] = self.Pb1_d
-        glide_vars["Pb3_d"] = self.Pb3_d
-        glide_vars["m0_d"] = self.m0_d
-        glide_vars["rp1_d"] = self.rp1_d
-        glide_vars["rp2"] = self.rp2
-        glide_vars["rp3"] = self.rp3
-        glide_vars["rb1"] = self.rb1
-        glide_vars["rb2"] = self.rb2
-        glide_vars["rb3"] = self.rb3
-        glide_vars["rw1"] = self.rw1
-        glide_vars["rw2"] = self.rw2
-        glide_vars["rw3"] = self.rw3
-        glide_vars["phi"] = self.phi
-        glide_vars["theta0"] = self.theta0
-        glide_vars["psi"] = self.psi
-
-        glide_vars["Mf"] = self.Mf.tolist()
         glide_vars["M"] = self.M.tolist()
         glide_vars["J"] = self.J.tolist()
         glide_vars["KL"] = self.KL
