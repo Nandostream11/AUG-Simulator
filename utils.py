@@ -43,7 +43,7 @@ def unit_vecs(r):
     # mag = math.sqrt(math.pow(r[0], 2) + math.pow(r[1], 2) + math.pow(r[2], 2))
 
     # return (1 / mag) * r
-
+    
     return np.array([[0, -r[2], r[1]], [r[2], 0, -r[0]], [-r[1], r[0], 0]])
 
 
@@ -52,9 +52,9 @@ def constants():
     I3 = np.eye(3)
     Z3 = np.zeros(3)
 
-    i_hat = np.array([1, 0, 0]).transpose()
-    j_hat = np.array([0, 1, 0]).transpose()
-    k_hat = np.array([0, 0, 1]).transpose()
+    i_hat = np.array([[1, 0, 0]]).transpose()
+    j_hat = np.array([[0, 1, 0]]).transpose()
+    k_hat = np.array([[0, 0, 1]]).transpose()
 
     return g, I3, Z3, i_hat, j_hat, k_hat
 

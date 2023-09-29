@@ -1,5 +1,7 @@
 import numpy as np
 import math
+from scipy.integrate import solve_ivp
+from scipy.integrate import odeint
 import utils
 import os
 import json
@@ -66,15 +68,15 @@ class Vertical_Motion:
         self.set_first_run_params()
 
     def set_first_run_params(self):
-        self.n1_0 = np.array([0.0, 0.0, 0.0]).transpose()
-        self.Omega0 = np.array([0.0, 0.0, 0.0]).transpose()
+        self.n1_0 = np.array([[0.0, 0.0, 0.0]])
+        self.Omega0 = np.array([[0.0, 0.0, 0.0]])
         self.phi = self.mass_params.PHI
         self.theta0 = self.mass_params.THETA
         self.psi = self.mass_params.PSI
 
-        self.Pp = np.array([0.0, 0.0, 0.0]).transpose()
-        self.Pb = np.array([0.0, 0.0, 0.0]).transpose()
-        self.Pw = np.array([0.0, 0.0, 0.0]).transpose()
+        self.Pp = [0.0, 0.0, 0.0]
+        self.Pb = [0.0, 0.0, 0.0]
+        self.Pw = [0.0, 0.0, 0.0]
 
     def set_desired_trajectory(self):
         # sourcery skip: use-fstring-for-formatting
@@ -175,27 +177,29 @@ class Vertical_Motion:
 
             # These are the initial conditions at every peak of the sawtooth trajectory
             if i == 0:
-                z_in = [
-                    self.n1_0,
-                    self.Omega0,
-                    [self.v1_d, 0.0, self.v3_d],
-                    [self.rp1_d, self.rp2, self.rp3],
-                    [self.rb1, self.rb2, self.rb3],
-                    [self.Pp1_d, self.Pp[1], self.Pp3_d],
-                    [self.Pb1_d, self.Pb[1], self.Pb3_d],
-                    self.Pw,
+                self.z_in = [
+                    self.n1_0.transpose(),
+                    self.Omega0.transpose(),
+                    np.array([[self.v1_d, 0.0, self.v3_d]]).transpose(),
+                    np.array([[self.rp1_d, self.rp2, self.rp3]]).transpose(),
+                    np.array([[self.rb1, self.rb2, self.rb3]]).transpose(),
+                    np.array([[self.Pp1_d, self.Pp[1], self.Pp3_d]]).transpose(),
+                    np.array([[self.Pb1_d, self.Pb[1], self.Pb3_d]]).transpose(),
+                    np.array([self.Pw]),
                     self.mb_d,
                     self.theta0,
                 ]
 
             else:
-                z_in = None
+                self.z_in = None
                 # empty arrays
 
             # print(z)
 
-            eom = Dynamics(z_in)
-            Z = eom.set_eom()
+            eom = Dynamics(self.z_in)
+            self.Z = eom.set_eom()
+            
+            self.solve_ode()
 
     def save_json(self):
         glide_vars = {
@@ -225,7 +229,7 @@ class Vertical_Motion:
             "phi": self.phi,
             "theta0": self.theta0,
             "psi": self.psi,
-            "Mf": self.Mf.tolist()
+            "Mf": self.Mf.tolist(),
         }
 
         glide_vars["M"] = self.M.tolist()
@@ -250,8 +254,13 @@ class Vertical_Motion:
 
         utils.save_json(glide_vars)
 
-    def plots(self):
-        pass
+    def solve_ode(self):
+        import pdb
+
+        pdb.set_trace()
+        t = np.linspace(0, 200, 500)
+        sol = solve_ivp(self.Z, t_span=(0, max(t)), y0=self.z_in, t_eval=t)
+        print(sol)
 
 
 if __name__ == "__main__":
