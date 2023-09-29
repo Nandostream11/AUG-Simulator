@@ -44,7 +44,7 @@ def unit_vecs(r):
 
     # return (1 / mag) * r
     
-    return np.array([[0, -r[2], r[1]], [r[2], 0, -r[0]], [-r[1], r[0], 0]])
+    return np.array([[0, -r[2][0], r[1][0]], [r[2][0], 0, -r[0][0]], [-r[1][0], r[0][0], 0]])
 
 
 def constants():

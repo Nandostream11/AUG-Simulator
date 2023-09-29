@@ -7,6 +7,7 @@ import os
 import json
 from Parameters.slocum import SLOCUM_PARAMS
 from Modeling.dynamics import Dynamics
+import matplotlib.pyplot as plt
 
 
 class Vertical_Motion:
@@ -71,7 +72,7 @@ class Vertical_Motion:
         self.n1_0 = np.array([[0.0, 0.0, 0.0]])
         self.Omega0 = np.array([[0.0, 0.0, 0.0]])
         self.phi = self.mass_params.PHI
-        self.theta0 = self.mass_params.THETA
+        self.theta0 = math.radians(self.mass_params.THETA)
         self.psi = self.mass_params.PSI
 
         self.Pp = [0.0, 0.0, 0.0]
@@ -174,7 +175,7 @@ class Vertical_Motion:
             )
 
             self.save_json()
-
+            
             # These are the initial conditions at every peak of the sawtooth trajectory
             if i == 0:
                 self.z_in = [
@@ -183,21 +184,17 @@ class Vertical_Motion:
                     np.array([[self.v1_d, 0.0, self.v3_d]]).transpose(),
                     np.array([[self.rp1_d, self.rp2, self.rp3]]).transpose(),
                     np.array([[self.rb1, self.rb2, self.rb3]]).transpose(),
+                    np.array([[self.rw1, self.rw2, self.rw3]]).transpose(),
                     np.array([[self.Pp1_d, self.Pp[1], self.Pp3_d]]).transpose(),
                     np.array([[self.Pb1_d, self.Pb[1], self.Pb3_d]]).transpose(),
-                    np.array([self.Pw]),
-                    self.mb_d,
-                    self.theta0,
+                    np.array([self.Pw]).transpose(),
+                    np.array([self.mb_d]),
+                    np.array([self.theta0]),
                 ]
 
             else:
                 self.z_in = None
                 # empty arrays
-
-            # print(z)
-
-            eom = Dynamics(self.z_in)
-            self.Z = eom.set_eom()
             
             self.solve_ode()
 
@@ -255,12 +252,27 @@ class Vertical_Motion:
         utils.save_json(glide_vars)
 
     def solve_ode(self):
-        import pdb
-
-        pdb.set_trace()
+        
+        eom = Dynamics(self.z_in)
+        self.Z = eom.set_eom()
+        
+        def dvdt(t, S):
+            Z = concat(np.array(self.Z, dtype="object"))
+            return Z
+        
         t = np.linspace(0, 200, 500)
-        sol = solve_ivp(self.Z, t_span=(0, max(t)), y0=self.z_in, t_eval=t)
-        print(sol)
+        
+        def concat(z_in=self.z_in):
+            z_in = np.concatenate((z_in[0].ravel(), z_in[1].ravel(), z_in[2].ravel(), z_in[3].ravel(), z_in[4].ravel(), z_in[5].ravel(), z_in[6].ravel(), z_in[7].ravel(), z_in[8].ravel(), z_in[9].ravel(), z_in[10].ravel()))
+            return z_in
+                
+        # sol = solve_ivp(dvdt, t_span=(0, max(t)), y0=concat(self.z_in), t_eval=t)
+        sol = odeint(dvdt, y0=concat(self.z_in), t=t, tfirst=True)
+        
+        breakpoint()
+    
+        plt.plot(t, sol.T[2])
+        plt.show()
 
 
 if __name__ == "__main__":
