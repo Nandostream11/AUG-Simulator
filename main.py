@@ -8,11 +8,6 @@ import numpy as np
 def main():
     Z = Vertical_Motion()
     Z.set_desired_trajectory()
-    # Z.solve_ode()
-    # x = np.zeros(30)
-    
-    # D = Dynamics(x)
-    # D.initialization()
 
 
 if __name__ == "__main__":

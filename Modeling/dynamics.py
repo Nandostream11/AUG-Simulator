@@ -393,17 +393,11 @@ class Dynamics:
     def set_controls(self):
         self.control_transformation()
 
-        if self.glide_dir == "D":
-            if self.rp[0] >= self.rp1_d:
-                self.u_bar = np.array([self.Z3]).T
-            else:
-                self.u_bar = self.u[0]
+        if self.glide_dir == "D" and self.rp[0] >= self.rp1_d:
+            self.u_bar = np.array([self.Z3]).T
 
-        if self.glide_dir == "U":
-            if self.rp[0] <= self.rp1_d:
-                self.u_bar = np.array([self.Z3]).T
-            else:
-                self.u_bar = self.u[0]
+        if self.glide_dir == "U" and self.rp[0] <= self.rp1_d:
+            self.u_bar = np.array([self.Z3]).T
 
         # Write for u_b and u_w as well
 
@@ -457,7 +451,7 @@ class Dynamics:
 
         # rw_dot solved earlier
 
-        Pp_dot = self.u_bar
+        Pp_dot = np.array([self.u_bar]).transpose()
 
         Pb_dot = self.u_b
 
@@ -485,4 +479,4 @@ class Dynamics:
 if __name__ == "__main__":
     equations = Dynamics()
     # equations.set_eom()
-    equations.initialization()
+    # equations.initialization()

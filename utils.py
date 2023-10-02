@@ -1,6 +1,7 @@
 import numpy as np
 import math
 import json
+import matplotlib.pyplot as plt
 
 
 def transformationMatrix(phi, theta, psi):
@@ -43,8 +44,10 @@ def unit_vecs(r):
     # mag = math.sqrt(math.pow(r[0], 2) + math.pow(r[1], 2) + math.pow(r[2], 2))
 
     # return (1 / mag) * r
-    
-    return np.array([[0, -r[2][0], r[1][0]], [r[2][0], 0, -r[0][0]], [-r[1][0], r[0][0], 0]])
+
+    return np.array(
+        [[0, -r[2][0], r[1][0]], [r[2][0], 0, -r[0][0]], [-r[1][0], r[0][0], 0]]
+    )
 
 
 def constants():
@@ -68,3 +71,8 @@ def load_json(path="vars/glider_variables.json"):
     file = open(path)
 
     return json.load(file)
+
+def plots(t, x):
+    
+    plt.plot(t, x)
+    plt.show()

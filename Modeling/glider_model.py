@@ -3,8 +3,6 @@ import math
 from scipy.integrate import solve_ivp
 from scipy.integrate import odeint
 import utils
-import os
-import json
 from Parameters.slocum import SLOCUM_PARAMS
 from Modeling.dynamics import Dynamics
 import matplotlib.pyplot as plt
@@ -17,6 +15,8 @@ class Vertical_Motion:
         self.vars = SLOCUM_PARAMS.VARIABLES
 
         self.initialization("SLOCUM")
+
+        self.solver_array = []
 
     def initialization(self, glider_name="SLOCUM"):
         self.g, self.I3, self.Z3, self.i_hat, self.j_hat, self.k_hat = utils.constants()
@@ -112,9 +112,7 @@ class Vertical_Motion:
             )
         )
 
-        l = len(self.E_i_d)
-
-        for i in range(1):
+        for i in range(len(self.E_i_d)):
             e_i_d = self.E_i_d[i]
 
             print(
@@ -175,7 +173,7 @@ class Vertical_Motion:
             )
 
             self.save_json()
-            
+
             # These are the initial conditions at every peak of the sawtooth trajectory
             if i == 0:
                 self.z_in = [
@@ -193,10 +191,31 @@ class Vertical_Motion:
                 ]
 
             else:
-                self.z_in = None
-                # empty arrays
-            
-            self.solve_ode()
+                self.z_in = [
+                    np.array([self.solver_array[-1][0:3]]).transpose(),
+                    np.array([self.solver_array[-1][3:6]]).transpose(),
+                    np.array([self.solver_array[-1][6:9]]).transpose(),
+                    np.array([self.solver_array[-1][9:12]]).transpose(),
+                    np.array([self.solver_array[-1][12:15]]).transpose(),
+                    np.array([self.solver_array[-1][15:18]]).transpose(),
+                    np.array([self.solver_array[-1][18:21]]).transpose(),
+                    np.array([self.solver_array[-1][21:24]]).transpose(),
+                    np.array([self.solver_array[-1][24:27]]).transpose(),
+                    np.array([self.solver_array[-1][27]]),
+                    np.array([self.solver_array[-1][28]]),
+                ]
+
+            self.i = i
+
+            sol = self.solve_ode()
+            if i == 0:
+                self.solver_array = np.array(sol)
+            else:
+                self.solver_array = np.insert(
+                    self.solver_array, -1, np.array(sol), axis=0
+                )
+
+            self.plots()
 
     def save_json(self):
         glide_vars = {
@@ -252,27 +271,43 @@ class Vertical_Motion:
         utils.save_json(glide_vars)
 
     def solve_ode(self):
-        
         eom = Dynamics(self.z_in)
         self.Z = eom.set_eom()
-        
+
         def dvdt(t, S):
             Z = concat(np.array(self.Z, dtype="object"))
             return Z
-        
-        t = np.linspace(0, 200, 500)
-        
+
+        t = np.linspace(200 * (self.i), 200 * (self.i + 1), 500)
+
         def concat(z_in=self.z_in):
-            z_in = np.concatenate((z_in[0].ravel(), z_in[1].ravel(), z_in[2].ravel(), z_in[3].ravel(), z_in[4].ravel(), z_in[5].ravel(), z_in[6].ravel(), z_in[7].ravel(), z_in[8].ravel(), z_in[9].ravel(), z_in[10].ravel()))
+            z_in = np.concatenate(
+                (
+                    z_in[0].ravel(),
+                    z_in[1].ravel(),
+                    z_in[2].ravel(),
+                    z_in[3].ravel(),
+                    z_in[4].ravel(),
+                    z_in[5].ravel(),
+                    z_in[6].ravel(),
+                    z_in[7].ravel(),
+                    z_in[8].ravel(),
+                    z_in[9].ravel(),
+                    z_in[10].ravel(),
+                )
+            )
             return z_in
-                
+
         # sol = solve_ivp(dvdt, t_span=(0, max(t)), y0=concat(self.z_in), t_eval=t)
         sol = odeint(dvdt, y0=concat(self.z_in), t=t, tfirst=True)
-        
-        breakpoint()
-    
+
         plt.plot(t, sol.T[2])
         plt.show()
+
+        return sol
+
+    def plots(self):
+        pass
 
 
 if __name__ == "__main__":
