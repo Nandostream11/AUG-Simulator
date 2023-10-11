@@ -21,6 +21,7 @@ class Vertical_Motion:
 
         self.solver_array = []
         self.total_time = []
+        self.derivative = []
 
     def initialization(self, glider_name="SLOCUM"):
         self.g, self.I3, self.Z3, self.i_hat, self.j_hat, self.k_hat = utils.constants()
@@ -128,22 +129,21 @@ class Vertical_Motion:
         )
 
         l = len(self.E_i_d)
-        l=4
         for i in range(l):
-            e_i_d = self.E_i_d[i]
+            self.e_i_d = self.E_i_d[i]
 
             print(
                 "Iteration {} | Desired glide angle in deg = {}".format(
-                    i, math.degrees(e_i_d)
+                    i, math.degrees(self.e_i_d)
                 )
             )
 
-            if (e_i_d) > 0:
+            if (self.e_i_d) > 0:
                 self.glider_direction = "U"
                 self.ballast_rate = -abs(self.ballast_rate)
                 print("Glider moving in upward direction\n")
 
-            elif (e_i_d) < 0:
+            elif (self.e_i_d) < 0:
                 self.glider_direction = "D"
                 self.ballast_rate = abs(self.ballast_rate)
                 print("Glider moving in downward direction\n")
@@ -151,15 +151,15 @@ class Vertical_Motion:
             self.alpha_d = (
                 (1 / 2)
                 * (self.KL / self.KD)
-                * math.tan(e_i_d)
+                * math.tan(self.e_i_d)
                 * (
                     -1
                     + math.sqrt(
                         1
                         - 4
                         * (self.KD / math.pow(self.KL, 2))
-                        * (1 / math.tan(e_i_d))
-                        * (self.KD0 * (1 / math.tan(e_i_d)) + self.KL0)
+                        * (1 / math.tan(self.e_i_d))
+                        * (self.KD0 * (1 / math.tan(self.e_i_d)) + self.KL0)
                     )
                 )
             )
@@ -167,13 +167,13 @@ class Vertical_Motion:
             self.mb_d = (self.m - self.mh - self.mm - self.mw - self.ms) + (
                 1 / self.g
             ) * (
-                -math.sin(e_i_d) * (self.KD0 + self.KD * math.pow(self.alpha_d, 2))
-                + math.cos(e_i_d) * (self.KL0 + self.KL * self.alpha_d)
+                -math.sin(self.e_i_d) * (self.KD0 + self.KD * math.pow(self.alpha_d, 2))
+                + math.cos(self.e_i_d) * (self.KL0 + self.KL * self.alpha_d)
             ) * math.pow(
                 self.V_d, 2
             )
 
-            self.theta_d = e_i_d + self.alpha_d
+            self.theta_d = self.e_i_d + self.alpha_d
             lambda_val = 1
 
             self.v1_d = self.V_d * math.cos(self.alpha_d)
@@ -205,82 +205,54 @@ class Vertical_Motion:
                 )
             )
             self.rs1_d = lambda_val * self.rp1_d
-
+            
             self.save_json()
 
             # These are the initial conditions at every peak of the sawtooth trajectory
-
+            
+            
             if i == 0:
-                self.z_in = [
-                    np.array([[0.0, 0.0, 0.0]]).transpose(),
-                    np.array([[0.0, 0.0, 0.0]]).transpose(),
-                    np.array([[self.v1_d, 0.0, self.v3_d]]).transpose(),
-                    np.array([[self.rp1_d, 0.0, self.rp3]]).transpose(),
-                    np.array([[self.rs1_d, 0.0, self.rs3]]).transpose(),
-                    np.array([[self.rb1, 0.0, self.rb3]]).transpose(),
-                    np.array([[0.0, 0.0, 0.0]]).transpose(),
-                    np.array([[0.0, 0.0, 0.0]]).transpose(),
-                    np.array(
-                        [[self.mb * self.v1_d, 0.0, self.mb * self.v3_d]]
-                    ).transpose(),  # Pb
-                    np.array([self.mb_d]),
-                    np.array([self.theta0]),
-                ]
-
-
+                self.z_in = np.array([[0.0, 0.0, 0.0],
+                                      [0.0, 0.0, 0.0],
+                                      [self.v1_d, 0.0, self.v3_d],
+                                      [self.rp1_d, 0.0, 0.05],
+                                      [self.rs1_d, 0.0, self.rs3],
+                                      [self.rb1, 0.0, self.rb3],
+                                      [0.0, 0.0, 0.0],
+                                      [0.0, 0.0, 0.0],
+                                      [self.mb * self.v1_d, 0.0, self.mb * self.v3_d],
+                                      [self.mb_d, 0, 0],
+                                      [self.theta0, 0, 0]]).flatten()
+            
             else:
                 p = len(self.solver_array)
-                self.z_in = [
-                    np.array([self.solver_array[p-1][0:3]]).transpose(),  # position
-                    np.array([self.solver_array[p-1][3:6]]).transpose(),  # Omega
-                    np.array([self.solver_array[p-1][6:9]]).transpose(),  # Velocity
-                    np.array(
-                        [self.solver_array[p-1][9:12]]
-                    ).transpose(),  # Position of primary moving mass
-                    np.array(
-                        [self.solver_array[p-1][12:15]]
-                    ).transpose(),  # Position of secondary moving mass
-                    np.array(
-                        [self.solver_array[p-1][15:18]]
-                    ).transpose(),  # Position of ballast mass
-                    np.array([self.solver_array[p-1][18:21]]).transpose(),  # Pp
-                    np.array([self.solver_array[p-1][21:24]]).transpose(),  # Ps
-                    np.array([self.solver_array[p-1][24:27]]).transpose(),  # Pb
-                    np.array([self.solver_array[p-1][27]]),  # Ballast mass
-                    np.array([self.solver_array[p-1][28]]),  # Pitch angle
-                ]
+                self.z_in = np.array([[self.solver_array[-1][0:3]],
+                                      [self.solver_array[-1][3:6]],
+                                      [self.solver_array[-1][6:9]],
+                                      [self.solver_array[-1][9:12]],
+                                      [self.solver_array[-1][12:15]],
+                                      [self.solver_array[-1][15:18]],
+                                      [self.solver_array[-1][18:21]],
+                                      [self.solver_array[-1][21:24]],
+                                      [self.solver_array[-1][24:27]],
+                                      [self.solver_array[-1][27:30]],
+                                      [self.solver_array[-1][30:33]]]).flatten()
             
 
             self.i = i
 
-            # sol = self.solve_ode()
-            # if i == 0:
-            #     self.solver_array = np.array(sol.y.T)
-            #     self.total_time = np.array(self.t)
-            # else:
-            #     self.solver_array = np.insert(
-            #         self.solver_array, -1, np.array(sol.y.T), axis=0
-            #     )
-            #     self.total_time = np.insert(
-            #         self.total_time, -1, np.array(self.t), axis=0
-            #     )
-
-            sol = self.solve_ode()       
+            sol = self.solve_ode(self.z_in)  
+            # sol.y[11] = 0.05    
             
             if i == 0:
                 self.solver_array = np.array(sol.y).T
                 self.total_time = np.array(sol.t)
             else:
-                self.solver_array = np.insert(
-                    self.solver_array, -1, np.array(sol.y).T, axis=0
-                )
-                self.total_time = np.insert(
-                    self.total_time, -1, np.array(sol.t), axis=0
-                )                
-
-            if i == l - 1:
-                self.plots()
+                self.solver_array = np.concatenate((self.solver_array, np.array(sol.y).T))
+                self.total_time = np.concatenate((self.total_time, np.array(sol.t)))
                 
+            if i == l - 1:
+                self.plots()                
                 
 
     def save_json(self):
@@ -297,7 +269,7 @@ class Vertical_Motion:
             # "m0_d": self.m0_d,
             "rp1_d": self.rp1_d,
             "rs1_d": self.rs1_d,
-            "rp3": self.rp3,
+            "rp3": 0.05,
             "rb1": self.rb1,
             "rb3": self.rb3,
             # "rw1": self.rw1,
@@ -333,49 +305,32 @@ class Vertical_Motion:
 
         utils.save_json(glide_vars)
 
-    def solve_ode(self):
+    def solve_ode(self, z0):
+        
+        # eom = Dynamics(z0)
+        
         def dvdt(t, y):
             eom = Dynamics(y)
             D = eom.set_eom()
-            Z = concat(np.array(D, dtype="object"))
-            return Z
+            self.derivative = np.concatenate((self.derivative, np.array([D[11]])))
+            return D
 
-        self.t = np.linspace(200 * (self.i), 200 * (self.i + 1), 500)
+        self.t = np.linspace(375 * (self.i), 375 * (self.i + 1))[:-1]
         # self.t = np.arange(200 * self.i, 200 * (self.i + 1))
         
-        def concat(z_in):
-            z_in = np.concatenate(
-                (
-                    z_in[0].ravel(),
-                    z_in[1].ravel(),
-                    z_in[2].ravel(),
-                    z_in[3].ravel(),
-                    z_in[4].ravel(),
-                    z_in[5].ravel(),
-                    z_in[6].ravel(),
-                    z_in[7].ravel(),
-                    z_in[8].ravel(),
-                    z_in[9].ravel(),
-                    z_in[10].ravel(),
-                )
-            )
-            
-            return z_in
-        
-        self.z0 = concat(self.z_in)
-        
-        # sol = solve_ivp(dvdt, t_span=(0, max(self.t)), y0=concat(self.z_in), t_eval=self.t)
+        # sol = solve_ivp(
+        #     dvdt, t_span=(0, max(self.t)), y0=z0, method='RK45', t_eval=self.t, dense_output=True)
+
         sol = solve_ivp(
-            dvdt, t_span=(0, max(self.t)), y0=self.z0, method='RK45', t_eval=self.t, dense_output=True)
-        # sol = RK45(dvdt, t0=0, y0=concat(self.z_in), t_bound=max(self.t), max_step=1, rtol=0.001, atol=1e-06)
-        # self.total_time = [self.total_time,sol.t]
-        # if self.i == 0: breakpoint()
-
-        # sol = odeint(dvdt, y0=concat(self.z_in), t=self.t, tfirst=True)
-
-        # plt.plot(self.t, sol.T[2])
+            dvdt, t_span=(min(self.t), max(self.t)), y0=z0, method='RK45', t_eval=self.t, dense_output=True)
+        
+        # sol = odeint(dvdt, y0=z0, t=self.t, tfirst=True)
+        # y = sol
+        # t = self.t
+        
+        # plt.plot(sol.t, sol.y[2])
         # plt.show()
-
+        
         return sol
     
     def new_ode_func(self):
@@ -404,22 +359,43 @@ class Vertical_Motion:
             )
             return z_in
         
-        t = np.linspace(200 * (self.i), 200 * (self.i + 1), 500)
+        self.z0 = concat(self.z_in)
+        y = self.z0
+        
+        t = np.linspace(375 * (self.i), 375 * (self.i + 1))
         t0 = t[0]
         tf = t[-1]
         meth = 'bdf'
         time = [t0, tf]
-        r = integrate.solve_ivp(fun=lambda t,y: dvdt(t,y), t_span=time, y0=concat(self.z_in), method='RK45', dense_output=True, rtol=1e-13, atol=1e-22)
-        
+        r = integrate.solve_ivp(fun=lambda t,y: dvdt(t,y), t_span=time, y0=y, method='RK45', dense_output=True, rtol=1e-13, atol=1e-22)
         k = 0
         while r.t[k] < tf:
-            r = integrate.solve_ivp(fun=lambda t,y: dvdt(t,y), t_span=time, y0=concat(self.z_in), method='RK45', dense_output=True, rtol=1e-13, atol=1e-22)
+            r = integrate.solve_ivp(fun=lambda t,y: dvdt(t,y), t_span=time, y0=y, method='RK45', dense_output=True, rtol=1e-13, atol=1e-22)
+            print(r.t[k])
+            k += 1
+        new_time = r.t
+        new_temp = r.y[:, -1]
+        
+        r = ode(dvdt)
+        r.set_integrator('vode', method='bdf', rtol=1e-13, atol=1e-22, with_jacobian=False)
+        r.set_initial_value(y, t0)
+        r.integrate(tf)
+        
+        t = []
+        Y = [y]
+        
+        while r.t < tf:
+            r.integrate(tf, step=True)
+            Y = np.vstack((Y, [r.y]))
+            t.append([r.t])
             
+        new_temp = Y[-1, :]
         
 
     def plots(self):
-        # plt.plot(self.total_time, self.solver_array.T[2,:])
-        plt.plot(self.total_time, self.solver_array.T[-1])
+        # breakpoint()
+        plt.plot(self.total_time, self.solver_array.T[11])  
+        # plt.plot(np.linspace(0,5312, 5312), self.derivative)      
         plt.show()
 
 
