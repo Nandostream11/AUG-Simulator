@@ -74,5 +74,21 @@ def load_json(path="vars/glider_variables.json"):
 
 
 def plots(t, x):
-    plt.plot(t, x)
+    fig, ax = plt.subplots(4, 2)
+    ax[0, 0].plot(t, x[0])
+    ax[0, 0].set(xlabel="time", ylabel="distance (m)")
+    ax[0, 1].plot(t, x[2])
+    ax[0, 1].set(xlabel="time", ylabel="depth (m)")
+    ax[1, 0].plot(t, x[4])
+    ax[1, 0].set(xlabel="time", ylabel="omega")
+    ax[1, 1].plot(t, x[6])
+    ax[1, 1].set(xlabel="time", ylabel="velocity")
+    ax[2, 0].plot(t, x[9])
+    ax[2, 0].set(xlabel="time", ylabel="rp1")
+    ax[2, 1].plot(t, x[11])
+    ax[2, 1].set(xlabel="time", ylabel="rp3")
+    ax[3, 0].plot(t, x[21])
+    ax[3, 0].set(xlabel="time", ylabel="mb")
+    ax[3, 1].plot(t, x[24])
+    ax[3, 1].set(xlabel="time", ylabel="theta")
     plt.show()

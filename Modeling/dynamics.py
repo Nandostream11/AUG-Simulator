@@ -17,7 +17,7 @@ class Dynamics:
         self.Pb = np.array([z[18:21]]).T
         self.mb = z[21]
         self.theta = z[24]
-        print(math.sqrt(math.pow(self.v[0][0], 2) + math.pow(self.v[2][0], 2)))
+        # print(math.sqrt(math.pow(self.v[0][0], 2) + math.pow(self.v[2][0], 2)))
 
         self.g, self.I3, self.Z3, self.i_hat, self.j_hat, self.k_hat = utils.constants()
 
@@ -41,13 +41,12 @@ class Dynamics:
 
         self.rp_c = utils.unit_vecs(self.rp)
         self.rb_c = utils.unit_vecs(self.rb)
+        # self.rw_c = utils.unit_vecs(self.rw)
 
-        
+        self.set_force_torque()
 
         self.R, self.R_T = self.transformation()
 
-        self.set_force_torque()
-        
         self.set_limits()
 
         # if self.glide_dir == "U":
@@ -65,7 +64,6 @@ class Dynamics:
 
         #     if self.rp[0] >= self.rp1_d:
         #         self.rp_dot = np.array([self.Z3]).transpose()
-
 
         # self.rb_dot = np.array([self.Z3]).transpose()
 
@@ -102,6 +100,8 @@ class Dynamics:
         # self.rw1 = var["rw1"]
         # self.rw2 = var["rw2"]
         # self.rw3 = var["rw3"]
+        self.Pp1_d = var["Pp1_d"]
+        self.Pp3_d = var["Pp3_d"]
         self.phi = var["phi"]
         self.theta0 = var["theta0"]
         self.psi = var["psi"]
@@ -128,34 +128,6 @@ class Dynamics:
         self.m0 = var["m0"]
         self.mt = var["mt"]
 
-    def transformation(self):
-        # n2 = np.array([[self.phi, self.theta, self.psi]]).transpose()
-        # eta = np.array(
-        #     [self.n1.transpose(), n2.transpose()], dtype=np.float32
-        # ).transpose()
-        # self.v = np.array([self.v, self.Omega], dtype=np.float32)
-        # tau1 = np.array([[X, Y, Z]]).transpose()
-        # tau2 = np.array([[K, M, N]]).transpose()
-        # tau = np.array([tau1.transpose(), tau2.transpose()],
-        #                dtype=np.float32).transpose()
-
-        J1_n2, J2_n2 = utils.transformationMatrix(self.phi, self.theta, self.psi)
-
-        # n1_dot = J1_n2 * self.v
-        # n2_dot = J2_n2 * self.Omega
-
-        # self.eta_dot = np.array([n1_dot, n2_dot]).transpose()
-
-        # self.eta_dot_T = np.linalg.inv(self.R)
-
-        # Replace R with J1_n2 later
-
-        R = J1_n2
-        # self.R_T = np.linalg.inv(self.R)
-        R_T = R.T
-
-        return R, R_T
-
     def set_force_torque(self):
         self.alpha = math.atan(self.v[2][0] / self.v[0][0])
 
@@ -175,12 +147,36 @@ class Dynamics:
 
         self.T_ext = np.array([[0, MDL, 0]]).transpose()  # same as K, M, N
 
+    def transformation(self):
+        n2 = np.array([[self.phi, self.theta, self.psi]]).transpose()
+        eta = np.array(
+            [self.n1.transpose(), n2.transpose()], dtype=np.float32
+        ).transpose()
+
+        self.nu = np.array([self.v, self.Omega], dtype=np.float32)
+
+        tau1 = self.F_ext
+        tau2 = self.T_ext
+        tau = np.array(
+            [tau1.transpose(), tau2.transpose()], dtype=np.float32
+        ).transpose()
+
+        J1_n2, J2_n2 = utils.transformationMatrix(self.phi, self.theta, self.psi)
+
+        n1_dot = J1_n2 * self.v
+        n2_dot = J2_n2 * self.Omega
+
+        # Replace R with J1_n2 later
+
+        R = J1_n2
+        R_T = R.T  # same as np.linalg.inv(self.R)
+
+        return R, R_T
+
     def set_limits(self):
         if self.glide_dir == "D":
             self.rp_dot = (
-                (1 / self.mm) * self.Pp
-                + self.v
-                - np.cross(self.Omega, self.rp, axis=0)
+                (1 / self.mm) * self.Pp + self.v - np.cross(self.Omega, self.rp, axis=0)
             )
 
             if self.rp[0] >= self.rp1_d:
@@ -201,9 +197,7 @@ class Dynamics:
 
         elif self.glide_dir == "U":
             self.rp_dot = (
-                (1 / self.mm) * self.Pp
-                - self.v
-                - np.cross(self.Omega, self.rp, axis=0)
+                (1 / self.mm) * self.Pp - self.v - np.cross(self.Omega, self.rp, axis=0)
             )
 
             if self.rp[0] <= self.rp1_d:
@@ -240,36 +234,36 @@ class Dynamics:
 
         self.ww = np.array([[0, 0, 0]]).transpose()
 
-        # 3x3 matrix when mw not equal to 0 -- needs to be updated
+        # 3x3 matrix when mw != 0
         # self.F = np.array(
         #     [
         #         [
         #             np.linalg.inv(self.M)
-        #             - self.rp_c * np.linalg.inv(self.J) * self.rp_c
+        #             - self.rp_c @ (np.linalg.inv(self.J)) @ (self.rp_c)
         #             + (1 / self.mm) * self.I3,
         #             np.linalg.inv(self.M)
-        #             - self.rp_c * np.linalg.inv(self.J) * self.rb_c,
+        #             - self.rp_c @ (np.linalg.inv(self.J)) @ (self.rb_c),
         #             np.linalg.inv(self.M)
-        #             - self.rp_c * np.linalg.inv(self.J) * self.rw_c,
+        #             - self.rp_c @ (np.linalg.inv(self.J)) @ (self.rw_c)
         #         ],
         #         [
         #             np.linalg.inv(self.M)
-        #             - self.rp_c * np.linalg.inv(self.J) * self.rp_c,
+        #             - self.rb_c @ (np.linalg.inv(self.J)) @ (self.rp_c),
         #             np.linalg.inv(self.M)
-        #             - self.rp_c * np.linalg.inv(self.J) * self.rb_c
+        #             - self.rb_c @ (np.linalg.inv(self.J)) @ (self.rb_c)
         #             + (1 / self.mb) * self.I3,
         #             np.linalg.inv(self.M)
-        #             - self.rp_c * np.linalg.inv(self.J) * self.rw_c,
+        #             - self.rb_c @ (np.linalg.inv(self.J)) @ (self.rw_c)
         #         ],
         #         [
         #             np.linalg.inv(self.M)
-        #             - self.rp_c * np.linalg.inv(self.J) * self.rp_c,
+        #             - self.rw_c @ (np.linalg.inv(self.J)) @ (self.rp_c),
         #             np.linalg.inv(self.M)
-        #             - self.rp_c * np.linalg.inv(self.J) * self.rb_c,
+        #             - self.rw_c @ (np.linalg.inv(self.J)) @ (self.rb_c),
         #             np.linalg.inv(self.M)
-        #             - self.rp_c * np.linalg.inv(self.J) * self.rw_c
+        #             - self.rw_c @ (np.linalg.inv(self.J)) @ (self.rw_c)
         #             + (1 / self.mw) * self.I3,
-        #         ],
+        #         ]
         #     ]
         # )
 
@@ -292,8 +286,6 @@ class Dynamics:
                 ],
             ]
         )
-
-        # self.F = np.linalg.det(self.F)  # But why?
 
         self.H = np.linalg.inv(self.F)
 
@@ -363,33 +355,31 @@ class Dynamics:
         # Zw = (
         #     -np.linalg.inv(self.M)
         #     @ (
-        #         np.cross(self.M @ (self.v) + self.Pp + self.Pb + self.Pw, self.Omega, axis=0)
+        #         np.cross(self.M @ (self.v) + self.Pp + self.Pb, self.Omega, axis=0)
         #         + self.m0 * self.g * np.matmul(self.R_T, self.k_hat)
         #         + self.F_ext
         #     )
         #     - np.cross(self.Omega, self.rp_dot, axis=0)
-        #     - np.linalg.inv(self.J)
-        #     @ (
-        #         np.cross(
-        #             np.matmul(self.J, self.Omega)
-        #             + np.matmul(self.rp_c, self.Pp)
-        #             + np.matmul(self.rb_c, self.Pb)
-        #             + np.matmul(self.rw_c, self.Pw),
-        #             self.Omega, axis=0
-        #         )
-        #         + np.cross(np.matmul(self.M, self.v), self.v, axis=0)
-        #         + self.T_ext
-        #     )
-        #     + np.cross(np.cross(self.Omega, self.rp, axis=0), self.Pp, axis=0)
-        #     + np.cross(np.cross(self.Omega, self.rb, axis=0), self.Pb, axis=0)
-        #     + np.cross(np.cross(self.Omega, self.rw, axis=0), self.Pw, axis=0)
-        #     + np.cross(
-        #         (
-        #             (self.mm * self.rp_c + self.mb * self.rb_c + self.mw * self.rw_c)
+        #     - np.cross(
+        #         np.linalg.inv(self.J)
+        #         @ (
+        #             np.cross(
+        #                 np.matmul(self.J, self.Omega)
+        #                 + np.matmul(self.rp_c, self.Pp)
+        #                 + np.matmul(self.rb_c, self.Pb),
+        #                 self.Omega,
+        #                 axis=0,
+        #             )
+        #             + np.cross(np.matmul(self.M, self.v), self.v, axis=0)
+        #             + self.T_ext
+        #             + np.cross(np.cross(self.Omega, self.rp, axis=0), self.Pp, axis=0)
+        #             + np.cross(np.cross(self.Omega, self.rb, axis=0), self.Pb, axis=0)
+        #             + (self.mm * self.rp_c + self.mb * self.rb_c)
         #             * self.g
         #             @ (self.R_T @ self.k_hat)
         #         ),
-        #         self.rw, axis=0
+        #         self.rw,
+        #         axis=0,
         #     )
         # )
 
@@ -401,7 +391,9 @@ class Dynamics:
             axis=0,
         )
 
-        # self.u = self.H * np.array([[-Zp + self.wp], [-Zb + self.wb], [-Zw + self.ww]]) # uncomment if mw is not 0
+        # self.u = self.H @ np.array(
+        #     [(-Zp + self.wp).flatten(), (-Zb + self.wb).flatten(), (-Zw + self.ww).flatten()]
+        # ).reshape(9,1) # uncomment if mw is not 0
         self.u = self.H @ np.array(
             [(-Zp + self.wp).flatten(), (-Zb + self.wb).flatten()]
         ).reshape(6, 1)
@@ -422,31 +414,13 @@ class Dynamics:
             # else:
             #     self.u_bar = np.array([[0.18, 0, 0]]).T
 
-            # if self.rs[0] >= self.rs1_d:
-            #     self.u_s = np.array([self.Z3]).T
-            # else:
-            #     self.u_s = np.array([[0.18, 0, 0]]).T
-
-            # if self.ms == 0:
-            #     self.u_s = np.array([[0, 0, 0]]).T
-
         if self.glide_dir == "U":
             if self.rp[0] <= self.rp1_d:
                 self.u_bar = np.array([self.Z3]).T
             # else:
             #     self.u_bar = np.array([[-0.18, 0, 0]]).T
 
-            # if self.rs[0] <= self.rs1_d:
-            #     self.u_s = np.array([self.Z3]).T
-            # else:
-            #     self.u_s = np.array([[-0.18, 0, 0]]).T
-
-            # if self.ms == 0:
-            #     self.u_s = np.array([[0, 0, 0]]).T
-
         # Write for u_b and u_w as well
-
-        self.u_b = np.array([self.Z3]).T
 
     def set_eom(self):
         self.set_controls()
@@ -490,13 +464,9 @@ class Dynamics:
 
         # rw_dot solved earlier
 
-        # rs_dot solved earlier
-
         Pp_dot = self.u_bar
 
         Pb_dot = self.u_b
-
-        # Ps_dot = self.u_s
 
         # Pw_dot = self.u_w
 
@@ -504,18 +474,14 @@ class Dynamics:
 
         theta_dot = np.array([self.Omega[1][0]])
 
-        # breakpoint()
-
         return np.array(
             [
                 n1_dot.flatten(),
                 Omega_dot.flatten(),
                 v1_dot.flatten(),
                 self.rp_dot.flatten(),
-                #  self.rs_dot.flatten(),
                 self.rb_dot.flatten(),
                 Pp_dot.flatten(),
-                #  Ps_dot.flatten(),
                 Pb_dot.flatten(),
                 [mb_dot[0], 0, 0],
                 [theta_dot[0], 0, 0],
@@ -526,4 +492,3 @@ class Dynamics:
 if __name__ == "__main__":
     equations = Dynamics()
     # equations.set_eom()
-    # equations.initialization()

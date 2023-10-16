@@ -69,10 +69,7 @@ class Vertical_Motion:
         self.rb1 = self.vars.rb1
         self.rb3 = self.vars.rb3
 
-        # [self.rp1, self.rp2, self.rp3] = [0.0, 0.0, 0.05]
-        # [self.rb1, self.rb2, self.rb3] = [0.0, 0.0, 0.0]
         # [self.rw1, self.rw2, self.rw3] = [0.0, 0.0, 0.0]
-        # [self.rs1, self.rs2, self.rs3] = [0.0, 0.0, 0.0]
 
         self.glide_angle_deg = self.vars.GLIDE_ANGLE
         self.V_d = self.vars.SPEED
@@ -81,16 +78,9 @@ class Vertical_Motion:
         self.set_first_run_params()
 
     def set_first_run_params(self):
-        # self.n1_0 = np.array([[0.0, 0.0, 0.0]])
-        # self.Omega0 = np.array([[0.0, 0.0, 0.0]])
         self.phi = self.vars.PHI
         self.theta0 = math.radians(self.vars.THETA)
         self.psi = self.vars.PSI
-
-        # self.Pp = [0.0, 0.0, 0.0]
-        # # self.Pb = [0.0, 0.0, 0.0]
-        # self.Pw = [0.0, 0.0, 0.0]
-        # self.Ps = [0.0, 0.0, 0.0]
 
     def set_desired_trajectory(self):
         self.E_i_d = np.array(
@@ -164,7 +154,7 @@ class Vertical_Motion:
                 -math.sin(self.e_i_d) * (self.KD0 + self.KD * math.pow(self.alpha_d, 2))
                 + math.cos(self.e_i_d) * (self.KL0 + self.KL * self.alpha_d)
             ) * math.pow(self.V_d, 2)
-            
+
             self.m0_d = self.mb_d + self.mh + self.mm - self.m
 
             self.theta_d = self.e_i_d + self.alpha_d
@@ -184,7 +174,7 @@ class Vertical_Motion:
 
             self.save_json()
 
-            # These are the initial conditions at every peak of the sawtooth trajectory
+            # Initial conditions at every peak of the sawtooth trajectory
 
             if i == 0:
                 self.z_in = np.array(
@@ -194,8 +184,8 @@ class Vertical_Motion:
                         [self.v1_d, 0.0, self.v3_d],
                         [self.rp1_d, 0.0, self.rp3],
                         [self.rb1, 0.0, self.rb3],
-                        [0.0, 0.0, 0.0],  
-                        [0.0, 0.0, 0.0],  
+                        [0.0, 0.0, 0.0],
+                        [0.0, 0.0, 0.0],
                         [self.mb_d, 0, 0],
                         [self.theta0, 0, 0],
                     ]
@@ -231,7 +221,7 @@ class Vertical_Motion:
                 self.total_time = np.concatenate((self.total_time, np.array(sol.t)))
 
             if i == l - 1:
-                self.plots()
+                utils.plots(self.total_time, self.solver_array.T)
 
     def save_json(self):
         glide_vars = {
@@ -252,6 +242,8 @@ class Vertical_Motion:
             # "rw1": self.rw1,
             # "rw2": self.rw2,
             # "rw3": self.rw3,
+            "Pp1_d": self.Pp1_d,
+            "Pp3_d": self.Pp3_d,
             "phi": self.phi,
             "theta0": self.theta0,
             "psi": self.psi,
@@ -288,9 +280,7 @@ class Vertical_Motion:
             # self.derivative = np.concatenate((self.derivative, np.array([D[2]])))
             return D
 
-        self.t = np.linspace(
-            375 * (self.i), 375 * (self.i + 1)
-        )  
+        self.t = np.linspace(375 * (self.i), 375 * (self.i + 1))
 
         sol = solve_ivp(
             dvdt,
@@ -301,12 +291,7 @@ class Vertical_Motion:
             dense_output=False,
         )
 
-        return sol
-
-    def plots(self):
-        breakpoint()
-        # plt.plot(self.total_time, self.solver_array.T[11])
-        plt.show()
+        return sol        
 
 
 if __name__ == "__main__":
