@@ -72,7 +72,7 @@ def load_json(path="vars/glider_variables.json"):
 
     return json.load(file)
 
+
 def plots(t, x):
-    
     plt.plot(t, x)
     plt.show()

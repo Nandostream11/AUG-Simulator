@@ -20,10 +20,6 @@ class SLOCUM_PARAMS:
         J2 = 12  # kg.m2
         J3 = 11  # kg.m2
 
-        PHI = 0.0  # degrees
-        THETA = 25.0  # degrees
-        PSI = 0.0  # degrees
-
     class HYDRODYNAMICS:
         KL = 132.5
         KL0 = 0.0
@@ -57,6 +53,10 @@ class SLOCUM_PARAMS:
         rw1 = 0.0
         rw2 = 0.0
         rw3 = 0.0
+        
+        PHI = 0.0  # degrees
+        THETA = 25.0  # degrees
+        PSI = 0.0  # degrees
 
     class CONTROLS:
         wp1 = 0.02
