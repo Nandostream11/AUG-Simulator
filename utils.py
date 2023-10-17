@@ -58,12 +58,12 @@ def constants():
     return g, I3, Z3, i_hat, j_hat, k_hat
 
 
-def save_json(vars, path="vars/glider_variables.json"):
+def save_json(vars, path="vars/2d_glider_variables.json"):
     with open(path, "w", encoding="utf-8") as file:
         json.dump(vars, file, separators=(",", ":"), sort_keys=True, indent=4)
 
 
-def load_json(path="vars/glider_variables.json"):
+def load_json(path="vars/2d_glider_variables.json"):
     file = open(path)
 
     return json.load(file)

@@ -2,7 +2,7 @@ import numpy as np
 import math
 from scipy.integrate import solve_ivp
 import utils
-from Modeling.dynamics import Dynamics
+from Modeling2d.dynamics import Dynamics
 
 
 class Vertical_Motion:
@@ -17,7 +17,6 @@ class Vertical_Motion:
 
         self.solver_array = []
         self.total_time = []
-        self.derivative = []
 
     def initialization(self):
         self.g, self.I3, self.Z3, self.i_hat, self.j_hat, self.k_hat = utils.constants()

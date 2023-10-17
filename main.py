@@ -1,8 +1,6 @@
 import argparse
-from Modeling.glider_model import Vertical_Motion
-from Modeling.dynamics import Dynamics
+from Modeling2d.glider_model import Vertical_Motion
 from Parameters.slocum import SLOCUM_PARAMS
-import numpy as np
 
 
 def main(args):
@@ -27,7 +25,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-g",
         "--glider",
-        help="desired glider mode.",
+        help="desired glider model",
         default=("slocum"),
     )
     parser.add_argument(

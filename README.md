@@ -10,7 +10,7 @@ The AUG simulator allows us to simulate the behavior of autonomous underwater gl
 
 ## Installation
 
-```
+```txt
 # clone the project
 git clone https://github.com/Bhaswanth-A/AUG-Simulator.git
 
@@ -23,7 +23,7 @@ python3 main.py
 
 ## Usage
 
-```md
+```txt
 usage: main.py [-h] [-i] [-c CYCLE] [-g GLIDER] [-a ANGLE] [-s SPEED]
                [-p [PLOT ...]]
 

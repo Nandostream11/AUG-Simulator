@@ -80,7 +80,7 @@ class Dynamics:
                 self.ballast_rate = 0
 
     def initialization(self):
-        var = utils.load_json("vars/glider_variables.json")
+        var = utils.load_json("vars/2d_glider_variables.json")
 
         self.alpha_d = var["alpha_d"]
         self.glide_dir = var["glide_dir"]
