@@ -1,33 +1,32 @@
 import numpy as np
 import math
 from scipy.integrate import solve_ivp
-from scipy.integrate import odeint
-from scipy.integrate import RK45
-from scipy.integrate import ode
-from scipy import integrate
 import utils
-from Parameters.slocum import SLOCUM_PARAMS
 from Modeling.dynamics import Dynamics
-import matplotlib.pyplot as plt
 
 
 class Vertical_Motion:
-    def __init__(self):
-        self.mass_params = SLOCUM_PARAMS.GLIDER_CONFIG
-        self.hydro_params = SLOCUM_PARAMS.HYDRODYNAMICS
-        self.vars = SLOCUM_PARAMS.VARIABLES
+    def __init__(self, args):
+        self.args = args
+        self.cycles = self.args.cycle
+        self.glider_name = self.args.glider
+        self.info = self.args.info
+        self.plots = self.args.plot
 
-        self.initialization("SLOCUM")
+        self.initialization()
 
         self.solver_array = []
         self.total_time = []
         self.derivative = []
 
-    def initialization(self, glider_name="SLOCUM"):
+    def initialization(self):
         self.g, self.I3, self.Z3, self.i_hat, self.j_hat, self.k_hat = utils.constants()
 
-        if glider_name == "SLOCUM":
+        if self.glider_name == ("slocum"):
             from Parameters.slocum import SLOCUM_PARAMS as P
+        else:
+            print("Invalid glider model")
+            raise ImportError
 
         self.mass_params = P.GLIDER_CONFIG
         self.hydro_params = P.HYDRODYNAMICS
@@ -71,8 +70,8 @@ class Vertical_Motion:
 
         # [self.rw1, self.rw2, self.rw3] = [0.0, 0.0, 0.0]
 
-        self.glide_angle_deg = self.vars.GLIDE_ANGLE
-        self.V_d = self.vars.SPEED
+        self.glide_angle_deg = self.args.angle
+        self.V_d = self.args.speed
         self.ballast_rate = self.vars.BALLAST_RATE
 
         self.set_first_run_params()
@@ -85,10 +84,8 @@ class Vertical_Motion:
     def set_desired_trajectory(self):
         self.E_i_d = np.array(
             [
-                math.radians(-self.glide_angle_deg),
-                math.radians(self.glide_angle_deg),
-                math.radians(-self.glide_angle_deg),
-                math.radians(self.glide_angle_deg),
+                math.radians(math.pow(-1, k + 1) * self.glide_angle_deg)
+                for k in range(self.cycles)
             ]
         )
 
@@ -119,7 +116,7 @@ class Vertical_Motion:
             self.e_i_d = self.E_i_d[i]
 
             print(
-                "Iteration {} | Desired glide angle in deg = {}".format(
+                "\nIteration {} | Desired glide angle in deg = {}".format(
                     i, math.degrees(self.e_i_d)
                 )
             )
@@ -127,12 +124,12 @@ class Vertical_Motion:
             if (self.e_i_d) > 0:
                 self.glider_direction = "U"
                 self.ballast_rate = -abs(self.ballast_rate)
-                print("Glider moving in upward direction\n")
+                print("Glider moving in upward direction")
 
             elif (self.e_i_d) < 0:
                 self.glider_direction = "D"
                 self.ballast_rate = abs(self.ballast_rate)
-                print("Glider moving in downward direction\n")
+                print("Glider moving in downward direction")
 
             self.alpha_d = (
                 (1 / 2)
@@ -171,6 +168,19 @@ class Vertical_Motion:
                 (self.Mf[2, 2] - self.Mf[0, 0]) * self.v1_d * self.v3_d
                 + (self.KM0 + self.KM * self.alpha_d) * math.pow(self.V_d, 2)
             )
+
+            if self.info == True:
+                print(
+                    "Desired angle of attack in deg = {}".format(
+                        math.degrees(self.alpha_d)
+                    )
+                )
+                print("Desired ballast mass in kg = {}".format(self.mb_d))
+                print(
+                    "Desired position of internal movable mass in cm = {}".format(
+                        self.rp1_d * 100
+                    )
+                )
 
             self.save_json()
 
@@ -220,8 +230,7 @@ class Vertical_Motion:
                 )
                 self.total_time = np.concatenate((self.total_time, np.array(sol.t)))
 
-            if i == l - 1:
-                utils.plots(self.total_time, self.solver_array.T)
+        utils.plots(self.total_time, self.solver_array.T, self.plots)
 
     def save_json(self):
         glide_vars = {
@@ -236,7 +245,7 @@ class Vertical_Motion:
             "v3_d": self.v3_d,
             "m0_d": self.m0_d,
             "rp1_d": self.rp1_d,
-            "rp3": 0.05,
+            "rp3": self.rp3,
             "rb1": self.rb1,
             "rb3": self.rb3,
             # "rw1": self.rw1,
@@ -248,28 +257,27 @@ class Vertical_Motion:
             "theta0": self.theta0,
             "psi": self.psi,
             "Mf": self.Mf.tolist(),
+            "M": self.M.tolist(),
+            "J": self.J.tolist(),
+            "KL": self.KL,
+            "KL0": self.KL0,
+            "KD": self.KD,
+            "KD0": self.KD0,
+            "KM": self.KM,
+            "KM0": self.KM0,
+            "KOmega1": self.KOmega1,
+            "KOmega2": self.KOmega2,
+            "desired_glide_speed": self.V_d,
+            "ballast_rate": self.ballast_rate,
+            "mh": self.mh,
+            "mb": self.mb,
+            "mw": self.mw,
+            "mm": self.mm,
+            "ms": self.ms,
+            "m": self.m,
+            "m0": self.m0,
+            "mt": self.mt,
         }
-
-        glide_vars["M"] = self.M.tolist()
-        glide_vars["J"] = self.J.tolist()
-        glide_vars["KL"] = self.KL
-        glide_vars["KL0"] = self.KL0
-        glide_vars["KD"] = self.KD
-        glide_vars["KD0"] = self.KD0
-        glide_vars["KM"] = self.KM
-        glide_vars["KM0"] = self.KM0
-        glide_vars["KOmega1"] = self.KOmega1
-        glide_vars["KOmega2"] = self.KOmega2
-        glide_vars["desired_glide_speed"] = self.V_d
-        glide_vars["ballast_rate"] = self.ballast_rate
-        glide_vars["mh"] = self.mh
-        glide_vars["mb"] = self.mb
-        glide_vars["mw"] = self.mw
-        glide_vars["mm"] = self.mm
-        glide_vars["ms"] = self.ms
-        glide_vars["m"] = self.m
-        glide_vars["m0"] = self.m0
-        glide_vars["mt"] = self.mt
 
         utils.save_json(glide_vars)
 
@@ -277,7 +285,6 @@ class Vertical_Motion:
         def dvdt(t, y):
             eom = Dynamics(y)
             D = eom.set_eom()
-            # self.derivative = np.concatenate((self.derivative, np.array([D[2]])))
             return D
 
         self.t = np.linspace(375 * (self.i), 375 * (self.i + 1))
@@ -291,7 +298,7 @@ class Vertical_Motion:
             dense_output=False,
         )
 
-        return sol        
+        return sol
 
 
 if __name__ == "__main__":

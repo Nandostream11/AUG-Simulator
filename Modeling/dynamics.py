@@ -17,27 +17,26 @@ class Dynamics:
         self.Pb = np.array([z[18:21]]).T
         self.mb = z[21]
         self.theta = z[24]
-        # print(math.sqrt(math.pow(self.v[0][0], 2) + math.pow(self.v[2][0], 2)))
 
         self.g, self.I3, self.Z3, self.i_hat, self.j_hat, self.k_hat = utils.constants()
 
         self.controls = SLOCUM_PARAMS.CONTROLS
 
-        # if self.glide_dir == "U":
-        #     if self.mb <= self.mb_d:
-        #         self.mb = self.mb_d
+        if self.glide_dir == "U":
+            if self.mb <= self.mb_d:
+                self.mb = self.mb_d
 
-        # elif self.glide_dir == "D":
-        #     if self.mb >= self.mb_d:
-        #         self.mb = self.mb_d
+        elif self.glide_dir == "D":
+            if self.mb >= self.mb_d:
+                self.mb = self.mb_d
 
-        # if self.glide_dir == "U":
-        #     if self.rp[0] <= self.rp1_d:
-        #         self.rp[0] = self.rp1_d
+        if self.glide_dir == "U":
+            if self.rp[0] <= self.rp1_d:
+                self.rp[0] = self.rp1_d
 
-        # elif self.glide_dir == "D":
-        #     if self.rp[0] >= self.rp1_d:
-        #         self.rp[0] = self.rp1_d
+        elif self.glide_dir == "D":
+            if self.rp[0] >= self.rp1_d:
+                self.rp[0] = self.rp1_d
 
         self.rp_c = utils.unit_vecs(self.rp)
         self.rb_c = utils.unit_vecs(self.rb)
@@ -47,25 +46,25 @@ class Dynamics:
 
         self.R, self.R_T = self.transformation()
 
-        self.set_limits()
+        # self.set_limits()
 
-        # if self.glide_dir == "U":
-        #     self.rp_dot = (
-        #         (1 / self.mm) * self.Pp - self.v - np.cross(self.Omega, self.rp, axis=0)
-        #     )
+        if self.glide_dir == "U":
+            self.rp_dot = (
+                (1 / self.mm) * self.Pp - self.v - np.cross(self.Omega, self.rp, axis=0)
+            )
 
-        #     if self.rp[0] <= self.rp1_d:
-        #         self.rp_dot = np.array([self.Z3]).transpose()
+            if self.rp[0] <= self.rp1_d:
+                self.rp_dot = np.array([self.Z3]).transpose()
 
-        # elif self.glide_dir == "D":
-        #     self.rp_dot = (
-        #         (1 / self.mm) * self.Pp + self.v - np.cross(self.Omega, self.rp, axis=0)
-        #     )
+        elif self.glide_dir == "D":
+            self.rp_dot = (
+                (1 / self.mm) * self.Pp + self.v - np.cross(self.Omega, self.rp, axis=0)
+            )
 
-        #     if self.rp[0] >= self.rp1_d:
-        #         self.rp_dot = np.array([self.Z3]).transpose()
+            if self.rp[0] >= self.rp1_d:
+                self.rp_dot = np.array([self.Z3]).transpose()
 
-        # self.rb_dot = np.array([self.Z3]).transpose()
+        self.rb_dot = np.array([self.Z3]).transpose()
 
         # self.Pb = self.mb * (
         #     self.v + np.cross(self.Omega, self.rb, axis=0) + self.rb_dot
@@ -73,12 +72,12 @@ class Dynamics:
 
         self.m0 = self.mh + self.mw + self.mb + self.mm - self.m
 
-        # if self.glide_dir == "U":
-        #     if self.mb <= self.mb_d:
-        #         self.ballast_rate = 0
-        # elif self.glide_dir == "D":
-        #     if self.mb >= self.mb_d:
-        #         self.ballast_rate = 0
+        if self.glide_dir == "U":
+            if self.mb <= self.mb_d:
+                self.ballast_rate = 0
+        elif self.glide_dir == "D":
+            if self.mb >= self.mb_d:
+                self.ballast_rate = 0
 
     def initialization(self):
         var = utils.load_json("vars/glider_variables.json")
@@ -491,4 +490,4 @@ class Dynamics:
 
 if __name__ == "__main__":
     equations = Dynamics()
-    # equations.set_eom()
+    equations.set_eom()
