@@ -46,14 +46,13 @@ options:
 ```
 
 ## TO-Do
-
-- <input type="checkbox" checked> Vertical plane simulations
-- <input type="checkbox"> 3D simulations
-- <input type="checkbox"> PID
-- <input type="checkbox"> Export sim data
-- <input type="checkbox" checked> Params in YAML/py file
-- <input type="checkbox"> Incorporate "An underwater glider flight simulator" paper
-- <input type="checkbox"> Myring equations?
-- <input type="checkbox"> rw
+- [x] Vertical plane simulations
+- [ ] 3D simulations
+- [ ] PID
+- [ ] Export sim data
+- [x] Params in YAML/py file
+- [ ] Incorporate "An underwater glider flight simulator" paper
+- [ ] Myring equations?
+- [ ] rw
 
 
