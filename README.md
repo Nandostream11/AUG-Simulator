@@ -35,7 +35,7 @@ options:
   -c CYCLE, --cycle CYCLE
                         number of desired cycles in sawtooth trajectory
   -g GLIDER, --glider GLIDER
-                        desired glider mode.
+                        desired glider model
   -a ANGLE, --angle ANGLE
                         desired glider angle
   -s SPEED, --speed SPEED
