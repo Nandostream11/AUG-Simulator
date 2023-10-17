@@ -31,18 +31,18 @@ An Autonomous Underwater Glider Simulator.
 
 options:
   -h, --help            show this help message and exit
-  -i, --info            Give full information in each cycle.
+  -i, --info            give full information in each cycle
   -c CYCLE, --cycle CYCLE
-                        Number of desired cycles in sawtooth trajectory.
+                        number of desired cycles in sawtooth trajectory
   -g GLIDER, --glider GLIDER
-                        Desired Glider Model.
+                        desired glider mode.
   -a ANGLE, --angle ANGLE
-                        Desired Glider Angle.
+                        desired glider angle
   -s SPEED, --speed SPEED
-                        Desired Glider Speed.
+                        desired glider speed
   -p [PLOT ...], --plot [PLOT ...]
-                        Variable to be plotted. Values accepted are [all, x,
-                        z, omega, v, rp1, rp3, mb, theta].
+                        variables to be plotted [all, x, z, omega, v, rp1,
+                        rp3, mb, theta]
 ```
 
 ## TO-Do

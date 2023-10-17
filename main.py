@@ -15,39 +15,39 @@ if __name__ == "__main__":
         description="An Autonomous Underwater Glider Simulator."
     )
     parser.add_argument(
-        "-i", "--info", help="Give full information in each cycle.", action="store_true"
+        "-i", "--info", help="give full information in each cycle", action="store_true"
     )
     parser.add_argument(
         "-c",
         "--cycle",
-        help="Number of desired cycles in sawtooth trajectory.",
+        help="number of desired cycles in sawtooth trajectory",
         default=4,
         type=int,
     )
     parser.add_argument(
         "-g",
         "--glider",
-        help="Desired Glider Model.",
+        help="desired glider mode.",
         default=("slocum"),
     )
     parser.add_argument(
         "-a",
         "--angle",
-        help="Desired Glider Angle.",
+        help="desired glider angle",
         default=SLOCUM_PARAMS.VARIABLES.GLIDE_ANGLE,
         type=int,
     )
     parser.add_argument(
         "-s",
         "--speed",
-        help="Desired Glider Speed.",
+        help="desired glider speed",
         default=SLOCUM_PARAMS.VARIABLES.SPEED,
         type=float,
     )
     parser.add_argument(
         "-p",
         "--plot",
-        help="Variable to be plotted. Values accepted are [all, x, z, omega, v, rp1, rp3, mb, theta].",
+        help="variables to be plotted [all, x, z, omega, v, rp1, rp3, mb, theta]",
         default="all",
         nargs="*",
     )
