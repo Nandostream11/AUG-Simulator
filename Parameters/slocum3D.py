@@ -23,26 +23,36 @@ class SLOCUM_PARAMS:
         J3 = 11  # kg.m2
 
     class HYDRODYNAMICS:
-        KL = 132.5
+        KL = 132.5 # 135
         KL0 = 0.0
 
-        KD = 25
-        KD0 = 2.15
+        KD = 25 # 45
+        KD0 = 2.15 # 2
+        
+        K_beta = 20
 
-        KM = -100
+        KM = -100 # -50
         KM0 = 0.0
+                
+        K_MY = 100
+        K_MR = -60
 
-        KOmega1 = -50
-        KOmega2 = -50
+        KOmega11 = -20  # Kq1
+        KOmega12 = -60  # Kq2
+        KOmega13 = -20  # Kq3
+        KOmega21 = 0
+        KOmega22 = 0
+        KOmega23 = 0
+        
 
     class VARIABLES:
         GLIDE_ANGLE = 25  # degrees
-        SPEED = 0.3  # speed of glider in vertical plane in m/s
-        BALLAST_RATE = 0.025  # Ballast rate input in kg/s
+        SPEED = 0.8  # speed of glider in vertical plane in m/s
+        BALLAST_RATE = 0.001  # Ballast rate input in kg/s
 
         # Position of internal mass mm
         rp1 = None  # This will vary
-        rp2 = 0.0
+        rp2 = 0.02  # fixed, in meters
         rp3 = 0.05  # fixed, in meters
 
         # Position of ballast mass mb
@@ -56,12 +66,14 @@ class SLOCUM_PARAMS:
         rw2 = 0.0
         rw3 = 0.0
 
-        PHI = 0.0  # degrees
-        THETA = 25.0  # degrees
-        PSI = 0.0  # degrees
+        PHI = 45  # roll angle in degrees
+        THETA = 25  # pitch angle in degrees
+        PSI = 0.0  # yaw angle in degrees
+        
+        BETA = 1.0 # sideslip angle in degrees
 
     class CONTROLS:
-        wp1 = 0.02
+        wp1 = 0.001 # m/s2
         wp2 = 0.0
         wp3 = 0.0
 

@@ -1,10 +1,14 @@
 import argparse
 from Modeling2d.glider_model import Vertical_Motion
+from Modeling3d.glider_model import ThreeD_Motion
 from Parameters.slocum import SLOCUM_PARAMS
 
 
 def main(args):
-    Z = Vertical_Motion(args)
+    if args.mode == "2D":
+        Z = Vertical_Motion(args)
+    elif args.mode == "3D":
+        Z = ThreeD_Motion(args)
     Z.set_desired_trajectory()
 
 
@@ -14,6 +18,12 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "-i", "--info", help="give full information in each cycle", action="store_true"
+    )
+    parser.add_argument(
+        "-m",
+        "--mode",
+        help="set mode as 2D or 3D",
+        default="2D"
     )
     parser.add_argument(
         "-c",

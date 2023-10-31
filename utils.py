@@ -2,6 +2,8 @@ import numpy as np
 import math
 import json
 import matplotlib.pyplot as plt
+from matplotlib import cm
+from mpl_toolkits import mplot3d
 
 
 def transformationMatrix(phi, theta, psi):
@@ -43,7 +45,7 @@ def transformationMatrix(phi, theta, psi):
 def unit_vecs(r):
     return np.array(
         [[0, -r[2][0], r[1][0]], [r[2][0], 0, -r[0][0]], [-r[1][0], r[0][0], 0]]
-    )
+    )   # Skew-symmetric matrix
 
 
 def constants():
@@ -70,43 +72,110 @@ def load_json(path="vars/2d_glider_variables.json"):
 
 
 def plots(t, x, plot):
-    if plot == "all":
-        fig, ax = plt.subplots(4, 2)
-        ax[0, 0].plot(t, x[0])
-        ax[0, 0].set(xlabel="time", ylabel="distance (m)")
-        ax[0, 1].plot(t, x[2])
-        ax[0, 1].set(xlabel="time", ylabel="depth (m)")
-        ax[1, 0].plot(t, x[4])
-        ax[1, 0].set(xlabel="time", ylabel="omega")
-        ax[1, 1].plot(t, x[6])
-        ax[1, 1].set(xlabel="time", ylabel="velocity")
-        ax[2, 0].plot(t, x[9])
-        ax[2, 0].set(xlabel="time", ylabel="rp1")
-        ax[2, 1].plot(t, x[11])
-        ax[2, 1].set(xlabel="time", ylabel="rp3")
-        ax[3, 0].plot(t, x[21])
-        ax[3, 0].set(xlabel="time", ylabel="mb")
-        ax[3, 1].plot(t, x[24])
-        ax[3, 1].set(xlabel="time", ylabel="theta")
-        plt.show()
+    vel = []
+    phi = []
+    theta = []
+    psi = []
+    for i in range(len(t)):
+        v = math.sqrt(math.pow(x[6][i],2) + math.pow(x[8][i],2))
+        phi_angle = math.degrees(x[-3][i])
+        theta_angle = math.degrees(x[-2][i])
+        psi_angle = math.degrees(x[-1][i]) % 360
+        vel.append(v)
+        phi.append(phi_angle)
+        theta.append(theta_angle)
+        psi.append(psi_angle)
 
+    vel = np.array(vel)  
+    phi = np.array(phi)
+    theta = np.array(theta)
+    psi = np.array(psi)
+    
+    if plot == ["3D"]: 
+        ax = plt.axes(projection='3d')
+        ax.plot3D(x[0], x[1], x[2], 'gray')
+        plt.show()
+    
+    elif plot == ["all"]:
+        
+        fig, ax = plt.subplots(3, 2)
+        ax[0, 0].plot(t, x[0])
+        ax[0, 0].set(xlabel="time (s)", ylabel="x (m)")
+        ax[1, 0].plot(t, x[1])
+        ax[1, 0].set(xlabel="time (s)", ylabel="y (m)")
+        ax[2, 0].plot(t, x[2])
+        ax[2, 0].set(xlabel="time (s)", ylabel="z (m)")
+        ax[0, 1].plot(t, phi)
+        ax[0, 1].set(xlabel="time (s)", ylabel="phi (deg)")
+        ax[1, 1].plot(t, theta)
+        ax[1, 1].set(xlabel="time (s)", ylabel="theta (deg)")
+        ax[2, 1].plot(t, psi)
+        ax[2, 1].set(xlabel="time (s)", ylabel="psi (deg)")
+        plt.show()
+        
+        fig, ax = plt.subplots(4, 2)
+        ax[0, 0].plot(t, x[3])
+        ax[0, 0].set(xlabel="time (s)", ylabel="Omega1 (rad/s)")
+        ax[1, 0].plot(t, x[4])
+        ax[1, 0].set(xlabel="time (s)", ylabel="Omega2 (rad/s)")
+        ax[2, 0].plot(t, x[5])
+        ax[2, 0].set(xlabel="time (s)", ylabel="Omega3 (rad/s)")
+        ax[0, 1].plot(t, x[6])
+        ax[0, 1].set(xlabel="time (s)", ylabel="v1 (m/s)")
+        ax[1, 1].plot(t, x[7])
+        ax[1, 1].set(xlabel="time (s)", ylabel="v2 (m/s)")
+        ax[2, 1].plot(t, x[8])
+        ax[2, 1].set(xlabel="time (s)", ylabel="v3 (m/s)")
+        ax[3, 0].plot(t, vel)
+        ax[3, 0].set(xlabel="time (s)", ylabel="velocity (m/s)")
+        plt.show()
+        
+        fig, ax = plt.subplots(2, 2)
+        ax[0, 0].plot(t, x[9])
+        ax[0, 0].set(xlabel="time (s)", ylabel="rp1 (m)")
+        ax[1, 0].plot(t, x[10])
+        ax[1, 0].set(xlabel="time (s)", ylabel="rp2 (m)")
+        ax[0, 1].plot(t, x[11])
+        ax[0, 1].set(xlabel="time (s)", ylabel="rp3 (m)")
+        ax[1, 1].plot(t, x[21])
+        ax[1, 1].set(xlabel="time (s)", ylabel="mb (kg)")
+        plt.show()
+          
     else:
         for p in plot:
             if p == "x":
                 plt.plot(t, x[0])
+            elif p == "y":
+                plt.plot(t, x[1])
             elif p == "z":
                 plt.plot(t, x[2])
-            elif p == "omega":
+            elif p == "omega1":
+                plt.plot(t, x[3])
+            elif p == "omega2":
                 plt.plot(t, x[4])
-            elif p == "v":
+            elif p == "omega3":
+                plt.plot(t, x[5])
+            elif p == "v1":
                 plt.plot(t, x[6])
+            elif p == "v2":
+                plt.plot(t, x[7])
+            elif p == "v3":
+                plt.plot(t, x[8])
+            elif p == "vel":
+                plt.plot(t, vel)
             elif p == "rp1":
                 plt.plot(t, x[9])
+            elif p == "rp2":
+                plt.plot(t, x[10])
             elif p == "rp3":
                 plt.plot(t, x[11])
             elif p == "mb":
                 plt.plot(t, x[21])
+            elif p == "phi":
+                plt.plot(t, phi)
             elif p == "theta":
-                plt.plot(t, x[24])
+                plt.plot(t, theta)
+            elif p == "psi":
+                plt.plot(t, psi)
 
             plt.show()
