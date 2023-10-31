@@ -15,7 +15,7 @@ The AUG simulator allows us to simulate the behavior of autonomous underwater gl
 git clone https://github.com/Bhaswanth-A/AUG-Simulator.git
 
 # install dependencies
-# to be updates
+# to be updated
 
 # run simulator
 python3 main.py

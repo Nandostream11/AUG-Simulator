@@ -2,8 +2,7 @@ import numpy as np
 import math
 import json
 import matplotlib.pyplot as plt
-from matplotlib import cm
-from mpl_toolkits import mplot3d
+from mpl_toolkits.mplot3d import Axes3D
 
 
 def transformationMatrix(phi, theta, psi):
@@ -94,6 +93,10 @@ def plots(t, x, plot):
     if plot == ["3D"]:
         ax = plt.axes(projection="3d")
         ax.plot3D(x[0], x[1], x[2], "gray")
+        ax.set_xlabel("x (m)")
+        ax.set_ylabel("y (m)")
+        ax.set_zlabel("z (m)")
+        ax.invert_zaxis()
         plt.show()
 
     elif plot == ["all"] or plot == "all":
