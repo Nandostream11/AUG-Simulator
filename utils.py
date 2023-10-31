@@ -45,7 +45,7 @@ def transformationMatrix(phi, theta, psi):
 def unit_vecs(r):
     return np.array(
         [[0, -r[2][0], r[1][0]], [r[2][0], 0, -r[0][0]], [-r[1][0], r[0][0], 0]]
-    )   # Skew-symmetric matrix
+    )  # Skew-symmetric matrix
 
 
 def constants():
@@ -77,7 +77,7 @@ def plots(t, x, plot):
     theta = []
     psi = []
     for i in range(len(t)):
-        v = math.sqrt(math.pow(x[6][i],2) + math.pow(x[8][i],2))
+        v = math.sqrt(math.pow(x[6][i], 2) + math.pow(x[8][i], 2))
         phi_angle = math.degrees(x[-3][i])
         theta_angle = math.degrees(x[-2][i])
         psi_angle = math.degrees(x[-1][i]) % 360
@@ -86,18 +86,17 @@ def plots(t, x, plot):
         theta.append(theta_angle)
         psi.append(psi_angle)
 
-    vel = np.array(vel)  
+    vel = np.array(vel)
     phi = np.array(phi)
     theta = np.array(theta)
     psi = np.array(psi)
-    
-    if plot == ["3D"]: 
-        ax = plt.axes(projection='3d')
-        ax.plot3D(x[0], x[1], x[2], 'gray')
+
+    if plot == ["3D"]:
+        ax = plt.axes(projection="3d")
+        ax.plot3D(x[0], x[1], x[2], "gray")
         plt.show()
-    
-    elif plot == ["all"]:
-        
+
+    elif plot == ["all"] or plot == "all":
         fig, ax = plt.subplots(3, 2)
         ax[0, 0].plot(t, x[0])
         ax[0, 0].set(xlabel="time (s)", ylabel="x (m)")
@@ -112,7 +111,7 @@ def plots(t, x, plot):
         ax[2, 1].plot(t, psi)
         ax[2, 1].set(xlabel="time (s)", ylabel="psi (deg)")
         plt.show()
-        
+
         fig, ax = plt.subplots(4, 2)
         ax[0, 0].plot(t, x[3])
         ax[0, 0].set(xlabel="time (s)", ylabel="Omega1 (rad/s)")
@@ -129,7 +128,7 @@ def plots(t, x, plot):
         ax[3, 0].plot(t, vel)
         ax[3, 0].set(xlabel="time (s)", ylabel="velocity (m/s)")
         plt.show()
-        
+
         fig, ax = plt.subplots(2, 2)
         ax[0, 0].plot(t, x[9])
         ax[0, 0].set(xlabel="time (s)", ylabel="rp1 (m)")
@@ -140,7 +139,7 @@ def plots(t, x, plot):
         ax[1, 1].plot(t, x[21])
         ax[1, 1].set(xlabel="time (s)", ylabel="mb (kg)")
         plt.show()
-          
+
     else:
         for p in plot:
             if p == "x":

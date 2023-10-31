@@ -2,10 +2,10 @@ import numpy as np
 import math
 from scipy.integrate import solve_ivp
 import utils
-from Modeling3d.dynamics import Dynamics
+from Modeling2d.dynamics_2D import Dynamics
 
 
-class ThreeD_Motion:
+class Vertical_Motion:
     def __init__(self, args):
         self.args = args
         self.mode = self.args.mode
@@ -20,14 +20,13 @@ class ThreeD_Motion:
         self.initialization()
 
         self.solver_array = np.array([])
-        self.total_time = np.array([])
-        self.derivative = np.array([])
+        self.total_time = []
 
     def initialization(self):
         self.g, self.I3, self.Z3, self.i_hat, self.j_hat, self.k_hat = utils.constants()
 
-        if self.glider_name == ("slocum") and self.mode == "3D":
-            from Parameters.slocum3D import SLOCUM_PARAMS as P
+        if self.glider_name == ("slocum") and self.mode == "2D":
+            from Parameters.slocum import SLOCUM_PARAMS as P
         else:
             print("Invalid glider model")
             raise ImportError
@@ -63,37 +62,27 @@ class ThreeD_Motion:
         self.KL0 = self.hydro_params.KL0
         self.KD = self.hydro_params.KD
         self.KD0 = self.hydro_params.KD0
-        self.K_beta = self.hydro_params.K_beta
         self.KM = self.hydro_params.KM
         self.KM0 = self.hydro_params.KM0
-        self.K_MY = self.hydro_params.K_MY
-        self.K_MR = self.hydro_params.K_MR
-        self.KOmega11 = self.hydro_params.KOmega11
-        self.KOmega12 = self.hydro_params.KOmega12
-        self.KOmega13 = self.hydro_params.KOmega13
-        self.KOmega21 = self.hydro_params.KOmega21
-        self.KOmega22 = self.hydro_params.KOmega22
-        self.KOmega23 = self.hydro_params.KOmega23
+        self.KOmega1 = self.hydro_params.KOmega1
+        self.KOmega2 = self.hydro_params.KOmega2
 
-        self.rp2_d = self.vars.rp2
         self.rp3 = self.vars.rp3
         self.rb1 = self.vars.rb1
-        self.rb2 = self.vars.rb2
         self.rb3 = self.vars.rb3
 
         # [self.rw1, self.rw2, self.rw3] = [0.0, 0.0, 0.0]
 
-        self.glide_angle_deg = self.vars.GLIDE_ANGLE
-        self.V_d = self.vars.SPEED
+        self.glide_angle_deg = self.args.angle
+        self.V_d = self.args.speed
         self.ballast_rate = self.vars.BALLAST_RATE
 
         self.set_first_run_params()
 
     def set_first_run_params(self):
-        self.phi0 = math.radians(self.vars.PHI)
+        self.phi = self.vars.PHI
         self.theta0 = math.radians(self.vars.THETA)
-        self.psi0 = math.radians(self.vars.PSI)
-        self.Omega0 = [0.0046, 0.0025, 0.0077]
+        self.psi = self.vars.PSI
 
     def set_desired_trajectory(self):
         self.E_i_d = np.array(
@@ -161,8 +150,6 @@ class ThreeD_Motion:
                 )
             )
 
-            self.beta_d = math.radians(self.vars.BETA)
-
             self.mb_d = (self.m - self.mh - self.mm) + (1 / self.g) * (
                 -math.sin(self.e_i_d) * (self.KD0 + self.KD * math.pow(self.alpha_d, 2))
                 + math.cos(self.e_i_d) * (self.KL0 + self.KL * self.alpha_d)
@@ -172,9 +159,11 @@ class ThreeD_Motion:
 
             self.theta_d = self.e_i_d + self.alpha_d
 
-            self.v1_d = self.V_d * math.cos(self.alpha_d) * math.cos(self.beta_d)
-            self.v2_d = self.V_d * math.sin(self.beta_d)
-            self.v3_d = self.V_d * math.sin(self.alpha_d) * math.cos(self.beta_d)
+            self.v1_d = self.V_d * math.cos(self.alpha_d)
+            self.v3_d = self.V_d * math.sin(self.alpha_d)
+
+            self.Pp1_d = self.mm * self.v1_d
+            self.Pp3_d = self.mm * self.v3_d
 
             self.rp1_d = -self.rp3 * math.tan(self.theta_d) + (
                 1 / (self.mm * self.g * math.cos(self.theta_d))
@@ -196,8 +185,6 @@ class ThreeD_Motion:
                     )
                 )
 
-            # breakpoint()
-
             self.save_json()
 
             # Initial conditions at every peak of the sawtooth trajectory
@@ -206,21 +193,21 @@ class ThreeD_Motion:
                 self.z_in = np.concatenate(
                     [
                         [0.0, 0.0, 0.0],
-                        [self.Omega0[0], self.Omega0[1], self.Omega0[2]],
-                        [self.v1_d, self.v2_d, self.v3_d],
-                        [self.rp1_d, self.rp2_d, self.rp3],
-                        [self.rb1, self.rb2, self.rb3],
+                        [0.0, 0.0, 0.0],
+                        [self.v1_d, 0.0, self.v3_d],
+                        [self.rp1_d, 0.0, self.rp3],
+                        [self.rb1, 0.0, self.rb3],
                         [0.0, 0.0, 0.0],
                         [0.0, 0.0, 0.0],
                         [self.mb_d, 0, 0],
-                        [self.phi0, -self.theta0, self.psi0],
+                        [0, self.theta0, 0],
                     ]
                 ).ravel()
 
             else:
                 self.z_in = self.solver_array[-1]
 
-            self.t = np.linspace(2000 * (i), 2000 * (i + 1), 1000)  # 3000
+            self.t = np.linspace(400 * (i), 400 * (i + 1))
 
             sol = self.solve_ode(self.z_in, self.t)
 
@@ -235,32 +222,28 @@ class ThreeD_Motion:
 
     def save_json(self):
         glide_vars = {
+            "alpha_d": self.alpha_d,
             "glide_dir": self.glider_direction,
             "glide_angle_deg": self.glide_angle_deg,
             "lim1": self.lim1,
             "lim2": self.lim2,
-            "alpha_d": self.alpha_d,
-            "beta_d": self.beta_d,
             "theta_d": self.theta_d,
             "mb_d": self.mb_d,
             "v1_d": self.v1_d,
-            "v2_d": self.v2_d,
             "v3_d": self.v3_d,
             "m0_d": self.m0_d,
             "rp1_d": self.rp1_d,
-            "rp2": self.rp2_d,
             "rp3": self.rp3,
             "rb1": self.rb1,
-            "rb2": self.rb2,
             "rb3": self.rb3,
             # "rw1": self.rw1,
             # "rw2": self.rw2,
             # "rw3": self.rw3,
-            # "Pp1_d": self.Pp1_d,
-            # "Pp3_d": self.Pp3_d,
-            "phi0": self.phi0,
+            "Pp1_d": self.Pp1_d,
+            "Pp3_d": self.Pp3_d,
+            "phi": self.phi,
             "theta0": self.theta0,
-            "psi0": self.psi0,
+            "psi": self.psi,
             "Mf": self.Mf.tolist(),
             "M": self.M.tolist(),
             "J": self.J.tolist(),
@@ -268,17 +251,10 @@ class ThreeD_Motion:
             "KL0": self.KL0,
             "KD": self.KD,
             "KD0": self.KD0,
-            "K_beta": self.K_beta,
             "KM": self.KM,
             "KM0": self.KM0,
-            "K_MY": self.K_MY,
-            "K_MR": self.K_MR,
-            "KOmega11": self.KOmega11,
-            "KOmega12": self.KOmega12,
-            "KOmega13": self.KOmega13,
-            "KOmega21": self.KOmega21,
-            "KOmega22": self.KOmega22,
-            "KOmega23": self.KOmega23,
+            "KOmega1": self.KOmega1,
+            "KOmega2": self.KOmega2,
             "desired_glide_speed": self.V_d,
             "ballast_rate": self.ballast_rate,
             "mh": self.mh,
@@ -297,7 +273,6 @@ class ThreeD_Motion:
         def dvdt(t, y):
             eom = Dynamics(y)
             D = eom.set_eom()
-            self.derivative = np.concatenate((self.derivative, np.array([D[-3]])))
             return D
 
         sol = solve_ivp(
@@ -313,5 +288,5 @@ class ThreeD_Motion:
 
 
 if __name__ == "__main__":
-    Z = ThreeD_Motion()
+    Z = Vertical_Motion()
     Z.set_desired_trajectory()

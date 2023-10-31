@@ -1,6 +1,6 @@
 import argparse
-from Modeling2d.glider_model import Vertical_Motion
-from Modeling3d.glider_model import ThreeD_Motion
+from Modeling2d.glider_model_2D import Vertical_Motion
+from Modeling3d.glider_model_3D import ThreeD_Motion
 from Parameters.slocum import SLOCUM_PARAMS
 
 
@@ -19,12 +19,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-i", "--info", help="give full information in each cycle", action="store_true"
     )
-    parser.add_argument(
-        "-m",
-        "--mode",
-        help="set mode as 2D or 3D",
-        default="2D"
-    )
+    parser.add_argument("-m", "--mode", help="set mode as 2D or 3D", default="2D")
     parser.add_argument(
         "-c",
         "--cycle",
@@ -35,7 +30,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-g",
         "--glider",
-        help="desired glider model",
+        help="desired glider model ['slocum']",
         default=("slocum"),
     )
     parser.add_argument(
@@ -55,7 +50,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-p",
         "--plot",
-        help="variables to be plotted [all, x, z, omega, v, rp1, rp3, mb, theta]",
+        help="variables to be plotted [3D, all, x, y, z, omega1, omega2, omega3, vel, v1, v2, v3, rp1, rp2, rp3, mb, phi, theta, psi]",
         default="all",
         nargs="*",
     )

@@ -17,7 +17,7 @@ class Dynamics:
         self.Pb = np.array([z[18:21]]).T
         self.mb = z[21]
         self.theta = z[25]
-        
+
         self.g, self.I3, self.Z3, self.i_hat, self.j_hat, self.k_hat = utils.constants()
 
         self.controls = SLOCUM_PARAMS.CONTROLS
@@ -145,7 +145,7 @@ class Dynamics:
         self.F_ext = np.array([[-D, 0, -L]]).transpose()  # same as X, Y, Z
 
         self.T_ext = np.array([[0, MDL, 0]]).transpose()  # same as K, M, N
-        
+
     def transformation(self):
         n2 = np.array([[self.phi, self.theta, self.psi]]).transpose()
         eta = np.array(
@@ -164,7 +164,7 @@ class Dynamics:
 
         self.n1_dot = J1_n2 * self.v
         self.n2_dot = J2_n2 * self.Omega
-        
+
         # Replace R with J1_n2 later
 
         R = J1_n2
@@ -477,7 +477,7 @@ class Dynamics:
                 Pp_dot,
                 Pb_dot,
                 mb_dot,
-                np.array([self.n2_dot[1]]).T 
+                np.array([self.n2_dot[1]]).T,
             ]
         ).ravel()
 

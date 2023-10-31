@@ -1,7 +1,7 @@
 class SLOCUM_PARAMS:
     class GLIDER_CONFIG:
         HULL_MASS = 40.0
-        FIXED_POINT_MASS = 0.0 
+        FIXED_POINT_MASS = 0.0
         BALLAST_MASS = 1.0
         INT_MOVABLE_MASS = 9.0
 
@@ -23,17 +23,17 @@ class SLOCUM_PARAMS:
         J3 = 11  # kg.m2
 
     class HYDRODYNAMICS:
-        KL = 132.5 # 135
+        KL = 132.5  # 135
         KL0 = 0.0
 
-        KD = 25 # 45
-        KD0 = 2.15 # 2
-        
+        KD = 25  # 45
+        KD0 = 2.15  # 2
+
         K_beta = 20
 
-        KM = -100 # -50
+        KM = -100  # -50
         KM0 = 0.0
-                
+
         K_MY = 100
         K_MR = -60
 
@@ -43,7 +43,6 @@ class SLOCUM_PARAMS:
         KOmega21 = 0
         KOmega22 = 0
         KOmega23 = 0
-        
 
     class VARIABLES:
         GLIDE_ANGLE = 25  # degrees
@@ -69,11 +68,11 @@ class SLOCUM_PARAMS:
         PHI = 45  # roll angle in degrees
         THETA = 25  # pitch angle in degrees
         PSI = 0.0  # yaw angle in degrees
-        
-        BETA = 1.0 # sideslip angle in degrees
+
+        BETA = 1.0  # sideslip angle in degrees
 
     class CONTROLS:
-        wp1 = 0.001 # m/s2
+        wp1 = 0.001  # m/s2
         wp2 = 0.0
         wp3 = 0.0
 

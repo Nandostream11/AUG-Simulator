@@ -419,7 +419,7 @@ class Dynamics:
         # Pw_dot = self.u_w
 
         mb_dot = np.array([[self.ballast_rate, 0, 0]]).T
-        
+
         return np.concatenate(
             [
                 n1_dot,

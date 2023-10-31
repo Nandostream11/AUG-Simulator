@@ -1,7 +1,7 @@
 class SLOCUM_PARAMS:
     class GLIDER_CONFIG:
         HULL_MASS = 40.0
-        FIXED_POINT_MASS = 0.0 
+        FIXED_POINT_MASS = 0.0
         BALLAST_MASS = 1.0
         INT_MOVABLE_MASS = 9.0
 
