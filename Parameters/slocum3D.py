@@ -51,7 +51,7 @@ class SLOCUM_PARAMS:
 
         # Position of internal mass mm
         rp1 = None  # This will vary
-        rp2 = 0.02  # fixed, in meters
+        rp2 = 0.02  # fixed, in meters. Change this to change roll (banked turns)
         rp3 = 0.05  # fixed, in meters
 
         # Position of ballast mass mb

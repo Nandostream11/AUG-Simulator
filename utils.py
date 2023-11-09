@@ -69,6 +69,24 @@ def load_json(path="vars/2d_glider_variables.json"):
 
     return json.load(file)
 
+def PID_theta(kp, ki, kd, theta_desired, theta_measured, theta_prev, dt, Omega):
+
+    error = theta_desired - theta_measured
+    P = kp * error
+    theta_i = (dt * error + theta_prev)
+    I = ki * theta_i
+    D = kd * Omega[1]
+    
+    pid = P + I - D
+    
+    print(math.degrees(error))
+    # theta_prev = theta_i
+    
+    # pid_vars = {"theta_prev": theta_prev}
+    # save_json(pid_vars, "vars/2d_pid_variables.json")
+
+    return -pid
+
 
 def plots(t, x, plot):
     vel = []
@@ -100,6 +118,24 @@ def plots(t, x, plot):
         plt.show()
 
     elif plot == ["all"] or plot == "all":
+        fig = plt.figure()
+        ax = fig.add_subplot(2, 2, 1, projection="3d")
+        ax.plot3D(x[0], x[1], x[2], "gray")
+        ax.set_xlabel("x (m)")
+        ax.set_ylabel("y (m)")
+        ax.set_zlabel("z (m)")
+        ax.invert_zaxis()
+        ax = fig.add_subplot(2, 2, 2)
+        ax.plot(x[0], x[2])
+        ax.set(xlabel="x (m)", ylabel="z (m)")
+        ax = fig.add_subplot(2, 2, 3)
+        ax.plot(x[1], x[2])
+        ax.set(xlabel="y (m)", ylabel="z (m)")
+        ax = fig.add_subplot(2, 2, 4)
+        ax.plot(x[1], x[0])
+        ax.set(xlabel="y (m)", ylabel="x (m)")
+        plt.show()
+
         fig, ax = plt.subplots(3, 2)
         ax[0, 0].plot(t, x[0])
         ax[0, 0].set(xlabel="time (s)", ylabel="x (m)")
@@ -115,21 +151,28 @@ def plots(t, x, plot):
         ax[2, 1].set(xlabel="time (s)", ylabel="psi (deg)")
         plt.show()
 
-        fig, ax = plt.subplots(4, 2)
-        ax[0, 0].plot(t, x[3])
-        ax[0, 0].set(xlabel="time (s)", ylabel="Omega1 (rad/s)")
-        ax[1, 0].plot(t, x[4])
-        ax[1, 0].set(xlabel="time (s)", ylabel="Omega2 (rad/s)")
-        ax[2, 0].plot(t, x[5])
-        ax[2, 0].set(xlabel="time (s)", ylabel="Omega3 (rad/s)")
-        ax[0, 1].plot(t, x[6])
-        ax[0, 1].set(xlabel="time (s)", ylabel="v1 (m/s)")
-        ax[1, 1].plot(t, x[7])
-        ax[1, 1].set(xlabel="time (s)", ylabel="v2 (m/s)")
-        ax[2, 1].plot(t, x[8])
-        ax[2, 1].set(xlabel="time (s)", ylabel="v3 (m/s)")
-        ax[3, 0].plot(t, vel)
-        ax[3, 0].set(xlabel="time (s)", ylabel="velocity (m/s)")
+        fig = plt.figure()
+        ax = fig.add_subplot(4, 2, 1)
+        ax.plot(t, x[3])
+        ax.set(xlabel="time (s)", ylabel="Omega1 (rad/s)")
+        ax = fig.add_subplot(4, 2, 3)
+        ax.plot(t, x[4])
+        ax.set(xlabel="time (s)", ylabel="Omega2 (rad/s)")
+        ax = fig.add_subplot(4, 2, 5)
+        ax.plot(t, x[5])
+        ax.set(xlabel="time (s)", ylabel="Omega3 (rad/s)")
+        ax = fig.add_subplot(4, 2, 2)
+        ax.plot(t, x[6])
+        ax.set(xlabel="time (s)", ylabel="v1 (m/s)")
+        ax = fig.add_subplot(4, 2, 4)
+        ax.plot(t, x[7])
+        ax.set(xlabel="time (s)", ylabel="v2 (m/s)")
+        ax = fig.add_subplot(4, 2, 6)
+        ax.plot(t, x[8])
+        ax.set(xlabel="time (s)", ylabel="v3 (m/s)")
+        ax = fig.add_subplot(4, 1, 4)
+        ax.plot(t, vel)
+        ax.set(xlabel="time (s)", ylabel="velocity (m/s)")
         plt.show()
 
         fig, ax = plt.subplots(2, 2)

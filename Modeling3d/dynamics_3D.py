@@ -19,7 +19,7 @@ class Dynamics:
         self.phi = z[24]
         self.theta = z[25]
         self.psi = z[26]
-
+        
         self.V = math.sqrt(
             math.pow(self.v[0][0], 2)
             + math.pow(self.v[1][0], 2)

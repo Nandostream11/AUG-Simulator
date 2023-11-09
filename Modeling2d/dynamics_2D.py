@@ -2,6 +2,7 @@ import numpy as np
 import math
 import utils
 from Parameters.slocum import SLOCUM_PARAMS
+from simple_pid import PID
 
 
 class Dynamics:
@@ -17,8 +18,17 @@ class Dynamics:
         self.Pb = np.array([z[18:21]]).T
         self.mb = z[21]
         self.theta = z[25]
+        
+        # print(math.degrees(self.theta))
 
         self.g, self.I3, self.Z3, self.i_hat, self.j_hat, self.k_hat = utils.constants()
+        
+        # pid = PID(0.001, 0.001, 0.01, setpoint=self.theta_d, sample_time=None)
+        
+        # self.theta = pid(self.theta)        
+        
+        self.theta = utils.PID_theta(0.00003, 1.5, 82, self.theta_d, self.theta, self.theta_prev, 1, self.Omega)
+        # print(self.theta_prev)
 
         self.controls = SLOCUM_PARAMS.CONTROLS
 
@@ -81,6 +91,7 @@ class Dynamics:
 
     def initialization(self):
         var = utils.load_json("vars/2d_glider_variables.json")
+        pid_var = utils.load_json("vars/2d_pid_variables.json")
 
         self.alpha_d = var["alpha_d"]
         self.glide_dir = var["glide_dir"]
@@ -126,6 +137,8 @@ class Dynamics:
         self.m = var["m"]
         self.m0 = var["m0"]
         self.mt = var["mt"]
+        
+        self.theta_prev = pid_var["theta_prev"]
 
     def set_force_torque(self):
         self.alpha = math.atan(self.v[2][0] / self.v[0][0])

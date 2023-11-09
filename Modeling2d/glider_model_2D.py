@@ -81,7 +81,7 @@ class Vertical_Motion:
 
     def set_first_run_params(self):
         self.phi = self.vars.PHI
-        self.theta0 = math.radians(self.vars.THETA)
+        self.theta0 = -math.radians(10)
         self.psi = self.vars.PSI
 
     def set_desired_trajectory(self):
@@ -115,6 +115,7 @@ class Vertical_Motion:
         )
 
         l = len(self.E_i_d)
+        l = 2
         for i in range(l):
             self.e_i_d = self.E_i_d[i]
 
@@ -158,6 +159,8 @@ class Vertical_Motion:
             self.m0_d = self.mb_d + self.mh + self.mm - self.m
 
             self.theta_d = self.e_i_d + self.alpha_d
+            
+            # print(math.degrees(self.theta_d))
 
             self.v1_d = self.V_d * math.cos(self.alpha_d)
             self.v3_d = self.V_d * math.sin(self.alpha_d)
@@ -184,6 +187,7 @@ class Vertical_Motion:
                         self.rp1_d * 100
                     )
                 )
+                
 
             self.save_json()
 
@@ -266,8 +270,11 @@ class Vertical_Motion:
             "m0": self.m0,
             "mt": self.mt,
         }
+        
+        pid_var = {"theta_prev": self.theta0}
 
         utils.save_json(glide_vars)
+        utils.save_json(pid_var, "vars/2d_pid_variables.json")
 
     def solve_ode(self, z0, time):
         def dvdt(t, y):

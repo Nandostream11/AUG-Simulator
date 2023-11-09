@@ -191,12 +191,11 @@ class ThreeD_Motion:
                 )
                 print("Desired ballast mass in kg = {}".format(self.mb_d))
                 print(
-                    "Desired position of internal movable mass in cm = {}".format(
+                    "Desired longitudinal position of internal movable mass in cm = {}".format(
                         self.rp1_d * 100
                     )
-                )
-
-            # breakpoint()
+                )            
+            
 
             self.save_json()
 
@@ -220,7 +219,7 @@ class ThreeD_Motion:
             else:
                 self.z_in = self.solver_array[-1]
 
-            self.t = np.linspace(2000 * (i), 2000 * (i + 1), 1000)  # 3000
+            self.t = np.linspace(2000 * (i), 2000 * (i + 1), 1000)
 
             sol = self.solve_ode(self.z_in, self.t)
 
@@ -230,6 +229,26 @@ class ThreeD_Motion:
             else:
                 self.solver_array = np.concatenate((self.solver_array, sol.y.T))
                 self.total_time = np.concatenate((self.total_time, sol.t))
+
+            if self.mode == "3D":
+                v = math.sqrt(
+                    math.pow(self.solver_array[-1][6], 2)
+                    + math.pow(self.solver_array[-1][7], 2)
+                    + math.pow(self.solver_array[-1][8], 2)
+                )
+                beta = math.asin(self.solver_array[-1][7] / v)
+                print(
+                    "\nEquilibrium roll angle of glider: {} deg".format(
+                        math.degrees(self.solver_array[-1][-3])
+                    )
+                )
+                print(
+                    "Equilibrium pitch angle of glider: {} deg".format(
+                        math.degrees(self.solver_array[-1][-2])
+                    )
+                )
+                print("Sideslip angle of glider: {} deg".format(math.degrees(beta)))
+                print("Equilibrium glide speed: {} m/s".format(v))
 
         utils.plots(self.total_time, self.solver_array.T, self.plots)
 
