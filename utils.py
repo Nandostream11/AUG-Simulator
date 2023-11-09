@@ -80,10 +80,10 @@ def PID_theta(kp, ki, kd, theta_desired, theta_measured, theta_prev, dt, Omega):
     pid = P + I - D
     
     print(math.degrees(error))
-    # theta_prev = theta_i
+    theta_prev = theta_i
     
-    # pid_vars = {"theta_prev": theta_prev}
-    # save_json(pid_vars, "vars/2d_pid_variables.json")
+    pid_vars = {"theta_prev": theta_prev}
+    save_json(pid_vars, "vars/2d_pid_variables.json")
 
     return -pid
 

@@ -27,7 +27,7 @@ class Dynamics:
         
         # self.theta = pid(self.theta)        
         
-        self.theta = utils.PID_theta(0.00003, 1.5, 82, self.theta_d, self.theta, self.theta_prev, 1, self.Omega)
+        self.theta = utils.PID_theta(1, 1.5, 82, self.theta_d, self.theta, self.theta_prev, 0.1, self.Omega)
         # print(self.theta_prev)
 
         self.controls = SLOCUM_PARAMS.CONTROLS
@@ -110,8 +110,8 @@ class Dynamics:
         # self.rw1 = var["rw1"]
         # self.rw2 = var["rw2"]
         # self.rw3 = var["rw3"]
-        self.Pp1_d = var["Pp1_d"]
-        self.Pp3_d = var["Pp3_d"]
+        # self.Pp1_d = var["Pp1_d"]
+        # self.Pp3_d = var["Pp3_d"]
         self.phi = var["phi"]
         self.theta0 = var["theta0"]
         self.psi = var["psi"]

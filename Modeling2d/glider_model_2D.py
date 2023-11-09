@@ -81,7 +81,7 @@ class Vertical_Motion:
 
     def set_first_run_params(self):
         self.phi = self.vars.PHI
-        self.theta0 = -math.radians(10)
+        self.theta0 = -math.radians(45)
         self.psi = self.vars.PSI
 
     def set_desired_trajectory(self):
@@ -115,7 +115,7 @@ class Vertical_Motion:
         )
 
         l = len(self.E_i_d)
-        l = 2
+        # l = 2
         for i in range(l):
             self.e_i_d = self.E_i_d[i]
 
@@ -165,8 +165,8 @@ class Vertical_Motion:
             self.v1_d = self.V_d * math.cos(self.alpha_d)
             self.v3_d = self.V_d * math.sin(self.alpha_d)
 
-            self.Pp1_d = self.mm * self.v1_d
-            self.Pp3_d = self.mm * self.v3_d
+            # self.Pp1_d = self.mm * self.v1_d
+            # self.Pp3_d = self.mm * self.v3_d
 
             self.rp1_d = -self.rp3 * math.tan(self.theta_d) + (
                 1 / (self.mm * self.g * math.cos(self.theta_d))
@@ -243,8 +243,8 @@ class Vertical_Motion:
             # "rw1": self.rw1,
             # "rw2": self.rw2,
             # "rw3": self.rw3,
-            "Pp1_d": self.Pp1_d,
-            "Pp3_d": self.Pp3_d,
+            # "Pp1_d": self.Pp1_d,
+            # "Pp3_d": self.Pp3_d,
             "phi": self.phi,
             "theta0": self.theta0,
             "psi": self.psi,
