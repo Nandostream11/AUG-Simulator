@@ -19,7 +19,7 @@ class Dynamics:
         self.phi = z[24]
         self.theta = z[25]
         self.psi = z[26]
-        
+
         self.V = math.sqrt(
             math.pow(self.v[0][0], 2)
             + math.pow(self.v[1][0], 2)
@@ -27,6 +27,32 @@ class Dynamics:
         )
 
         self.g, self.I3, self.Z3, self.i_hat, self.j_hat, self.k_hat = utils.constants()
+
+        if self.pid_control == "enable":
+            self.theta, self.theta_prev = utils.PID(
+                80,
+                1.5,
+                100,
+                self.theta_d,
+                self.theta,
+                self.theta_prev,
+                0.1,
+                self.Omega[1],
+            )
+
+            self.phi, self.phi_prev = utils.PID(
+                80,
+                1.5,
+                100,
+                math.radians(20),
+                self.phi,
+                self.phi_prev,
+                0.1,
+                self.Omega[0],
+            )
+
+            pid_vars = {"theta_prev": self.theta_prev, "phi_prev": self.phi_prev}
+            utils.save_json(pid_vars, "vars/pid_variables.json")
 
         self.controls = SLOCUM_PARAMS.CONTROLS
 
@@ -68,8 +94,10 @@ class Dynamics:
                 self.ballast_rate = 0
 
     def initialization(self):
-        var = utils.load_json("vars/2d_glider_variables.json")
+        var = utils.load_json("vars/3d_glider_variables.json")
+        pid_var = utils.load_json("vars/pid_variables.json")
 
+        self.pid_control = var["pid_control"]
         self.alpha_d = var["alpha_d"]
         self.beta_d = var["beta_d"]
         self.glide_dir = var["glide_dir"]
@@ -125,6 +153,9 @@ class Dynamics:
         self.m = var["m"]
         self.m0 = var["m0"]
         self.mt = var["mt"]
+
+        self.theta_prev = pid_var["theta_prev"]
+        self.phi_prev = pid_var["phi_prev"]
 
     def set_force_torque(self):
         self.alpha = math.atan(self.v[2][0] / self.v[0][0])

@@ -15,6 +15,7 @@ class ThreeD_Motion:
             self.cycles = self.args.cycle
         self.glider_name = self.args.glider
         self.info = self.args.info
+        self.pid_control = self.args.pid
         self.plots = self.args.plot
 
         self.initialization()
@@ -91,7 +92,7 @@ class ThreeD_Motion:
 
     def set_first_run_params(self):
         self.phi0 = math.radians(self.vars.PHI)
-        self.theta0 = math.radians(self.vars.THETA)
+        self.theta0 = -math.radians(self.vars.THETA)
         self.psi0 = math.radians(self.vars.PSI)
         self.Omega0 = [0.0046, 0.0025, 0.0077]
 
@@ -194,8 +195,7 @@ class ThreeD_Motion:
                     "Desired longitudinal position of internal movable mass in cm = {}".format(
                         self.rp1_d * 100
                     )
-                )            
-            
+                )
 
             self.save_json()
 
@@ -212,7 +212,7 @@ class ThreeD_Motion:
                         [0.0, 0.0, 0.0],
                         [0.0, 0.0, 0.0],
                         [self.mb_d, 0, 0],
-                        [self.phi0, -self.theta0, self.psi0],
+                        [self.phi0, self.theta0, self.psi0],
                     ]
                 ).ravel()
 
@@ -237,6 +237,12 @@ class ThreeD_Motion:
                     + math.pow(self.solver_array[-1][8], 2)
                 )
                 beta = math.asin(self.solver_array[-1][7] / v)
+                alpha = math.atan(self.solver_array[-1][8] / self.solver_array[-1][6])
+                R = (
+                    v
+                    * math.cos(self.solver_array[-1][-2] - alpha)
+                    / self.solver_array[-1][5]
+                )
                 print(
                     "\nEquilibrium roll angle of glider: {} deg".format(
                         math.degrees(self.solver_array[-1][-3])
@@ -249,6 +255,7 @@ class ThreeD_Motion:
                 )
                 print("Sideslip angle of glider: {} deg".format(math.degrees(beta)))
                 print("Equilibrium glide speed: {} m/s".format(v))
+                print("Radius : {} m".format(R))
 
         utils.plots(self.total_time, self.solver_array.T, self.plots)
 
@@ -308,9 +315,16 @@ class ThreeD_Motion:
             "m": self.m,
             "m0": self.m0,
             "mt": self.mt,
+            "pid_control": self.pid_control,
         }
 
-        utils.save_json(glide_vars)
+        pid_var = {
+            "theta_prev": self.theta0,
+            "phi_prev": self.phi0,
+        }
+
+        utils.save_json(glide_vars, "vars/3d_glider_variables.json")
+        utils.save_json(pid_var, "vars/pid_variables.json")
 
     def solve_ode(self, z0, time):
         def dvdt(t, y):

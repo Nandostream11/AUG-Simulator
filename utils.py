@@ -69,23 +69,17 @@ def load_json(path="vars/2d_glider_variables.json"):
 
     return json.load(file)
 
-def PID_theta(kp, ki, kd, theta_desired, theta_measured, theta_prev, dt, Omega):
 
-    error = theta_desired - theta_measured
+def PID(kp, ki, kd, setpoint, measured, integral, dt, derivative):
+    error = setpoint - measured
     P = kp * error
-    theta_i = (dt * error + theta_prev)
-    I = ki * theta_i
-    D = kd * Omega[1]
-    
-    pid = P + I - D
-    
-    print(math.degrees(error))
-    theta_prev = theta_i
-    
-    pid_vars = {"theta_prev": theta_prev}
-    save_json(pid_vars, "vars/2d_pid_variables.json")
+    integral = dt * error + integral
+    I = ki * integral
+    D = kd * derivative
 
-    return -pid
+    pid = P + I - D
+
+    return -pid, integral
 
 
 def plots(t, x, plot):

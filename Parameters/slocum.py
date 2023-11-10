@@ -57,7 +57,7 @@ class SLOCUM_PARAMS:
         rw3 = 0.0
 
         PHI = 0.0  # degrees
-        THETA = 25.0  # degrees
+        THETA = 45.0  # degrees
         PSI = 0.0  # degrees
 
     class CONTROLS:

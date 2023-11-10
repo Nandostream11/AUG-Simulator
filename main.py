@@ -48,6 +48,12 @@ if __name__ == "__main__":
         type=float,
     )
     parser.add_argument(
+        "-pid",
+        "--pid",
+        help="enable or disable PID pitch control",
+        default="disable",
+    )
+    parser.add_argument(
         "-p",
         "--plot",
         help="variables to be plotted [3D, all, x, y, z, omega1, omega2, omega3, vel, v1, v2, v3, rp1, rp2, rp3, mb, phi, theta, psi]",

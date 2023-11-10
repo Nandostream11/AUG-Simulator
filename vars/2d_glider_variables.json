@@ -76,6 +76,7 @@
     "mt":50.0,
     "mw":0.0,
     "phi":0.0,
+    "pid_control":"enable",
     "psi":0.0,
     "rb1":0.0,
     "rb3":0.0,

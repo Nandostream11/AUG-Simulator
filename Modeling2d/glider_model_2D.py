@@ -15,6 +15,7 @@ class Vertical_Motion:
             self.cycles = self.args.cycle
         self.glider_name = self.args.glider
         self.info = self.args.info
+        self.pid_control = self.args.pid
         self.plots = self.args.plot
 
         self.initialization()
@@ -81,7 +82,7 @@ class Vertical_Motion:
 
     def set_first_run_params(self):
         self.phi = self.vars.PHI
-        self.theta0 = -math.radians(45)
+        self.theta0 = -math.radians(self.vars.THETA)
         self.psi = self.vars.PSI
 
     def set_desired_trajectory(self):
@@ -159,14 +160,9 @@ class Vertical_Motion:
             self.m0_d = self.mb_d + self.mh + self.mm - self.m
 
             self.theta_d = self.e_i_d + self.alpha_d
-            
-            # print(math.degrees(self.theta_d))
 
             self.v1_d = self.V_d * math.cos(self.alpha_d)
             self.v3_d = self.V_d * math.sin(self.alpha_d)
-
-            # self.Pp1_d = self.mm * self.v1_d
-            # self.Pp3_d = self.mm * self.v3_d
 
             self.rp1_d = -self.rp3 * math.tan(self.theta_d) + (
                 1 / (self.mm * self.g * math.cos(self.theta_d))
@@ -187,7 +183,6 @@ class Vertical_Motion:
                         self.rp1_d * 100
                     )
                 )
-                
 
             self.save_json()
 
@@ -243,8 +238,6 @@ class Vertical_Motion:
             # "rw1": self.rw1,
             # "rw2": self.rw2,
             # "rw3": self.rw3,
-            # "Pp1_d": self.Pp1_d,
-            # "Pp3_d": self.Pp3_d,
             "phi": self.phi,
             "theta0": self.theta0,
             "psi": self.psi,
@@ -269,12 +262,15 @@ class Vertical_Motion:
             "m": self.m,
             "m0": self.m0,
             "mt": self.mt,
+            "pid_control": self.pid_control,
         }
-        
-        pid_var = {"theta_prev": self.theta0}
+
+        pid_var = {
+            "theta_prev": self.theta0,
+        }
 
         utils.save_json(glide_vars)
-        utils.save_json(pid_var, "vars/2d_pid_variables.json")
+        utils.save_json(pid_var, "vars/pid_variables.json")
 
     def solve_ode(self, z0, time):
         def dvdt(t, y):
