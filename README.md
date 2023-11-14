@@ -24,7 +24,8 @@ python3 main.py
 ## Usage
 
 ```txt
-usage: main.py [-h] [-i] [-c CYCLE] [-g GLIDER] [-a ANGLE] [-s SPEED]
+usage: main.py [-h] [-i] [-m MODE] [-c CYCLE] [-g GLIDER] [-a ANGLE]
+               [-s SPEED] [-pid PID] [-r RUDDER] [-sr SETRUDDER]
                [-p [PLOT ...]]
 
 An Autonomous Underwater Glider Simulator.
@@ -41,16 +42,22 @@ options:
                         desired glider angle
   -s SPEED, --speed SPEED
                         desired glider speed
+  -pid PID, --pid PID   enable or disable PID pitch control
+  -r RUDDER, --rudder RUDDER
+                        enable or disable rudder
+  -sr SETRUDDER, --setrudder SETRUDDER
+                        desired rudder angle. Defaults to 10 degrees
   -p [PLOT ...], --plot [PLOT ...]
                         variables to be plotted [3D, all, x, y, z, omega1,
-                        omega2, omega3, vel, v1, v2, v3, rp1, rp2, rp3, mb, phi,
-                        theta, psi]
+                        omega2, omega3, vel, v1, v2, v3, rp1, rp2, rp3, mb,
+                        phi, theta, psi]
 
 ```
 
 ## TO-Do
 - [x] Vertical plane simulations
 - [x] 3D simulations
+- [x] Rudder
 - [ ] PID
 - [ ] Export sim data
 - [x] Params in YAML/py file
