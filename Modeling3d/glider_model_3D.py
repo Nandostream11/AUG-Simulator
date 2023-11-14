@@ -11,6 +11,8 @@ class ThreeD_Motion:
         self.mode = self.args.mode
         if self.mode == "3D":
             self.cycles = 1
+            self.rudder = self.args.rudder
+            self.rudder_angle = math.radians(self.args.setrudder)
         else:
             self.cycles = self.args.cycle
         self.glider_name = self.args.glider
@@ -76,7 +78,11 @@ class ThreeD_Motion:
         self.KOmega22 = self.hydro_params.KOmega22
         self.KOmega23 = self.hydro_params.KOmega23
 
-        self.rp2_d = self.vars.rp2
+        if self.rudder == "enable":
+            self.rp2_d = 0.0 
+        if self.rudder == "disable":
+            self.rp2_d = self.vars.rp2
+        
         self.rp3 = self.vars.rp3
         self.rb1 = self.vars.rb1
         self.rb2 = self.vars.rb2
@@ -207,7 +213,7 @@ class ThreeD_Motion:
                         [0.0, 0.0, 0.0],
                         [self.Omega0[0], self.Omega0[1], self.Omega0[2]],
                         [self.v1_d, self.v2_d, self.v3_d],
-                        [self.rp1_d, self.rp2_d, self.rp3],
+                        [self.rp1_d, self.rp2_d, self.rp3], # [self.rp1_d, self.rp2_d, self.rp3],
                         [self.rb1, self.rb2, self.rb3],
                         [0.0, 0.0, 0.0],
                         [0.0, 0.0, 0.0],
@@ -274,7 +280,7 @@ class ThreeD_Motion:
             "v3_d": self.v3_d,
             "m0_d": self.m0_d,
             "rp1_d": self.rp1_d,
-            "rp2": self.rp2_d,
+            # "rp2": self.rp2_d,
             "rp3": self.rp3,
             "rb1": self.rb1,
             "rb2": self.rb2,
@@ -316,6 +322,8 @@ class ThreeD_Motion:
             "m0": self.m0,
             "mt": self.mt,
             "pid_control": self.pid_control,
+            "rudder": self.rudder,
+            "rudder_angle": self.rudder_angle,
         }
 
         pid_var = {

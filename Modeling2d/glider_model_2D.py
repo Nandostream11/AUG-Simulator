@@ -194,7 +194,7 @@ class Vertical_Motion:
                         [0.0, 0.0, 0.0],
                         [0.0, 0.0, 0.0],
                         [self.v1_d, 0.0, self.v3_d],
-                        [self.rp1_d, 0.0, self.rp3],
+                        [0.0, 0.0, self.rp3], # [self.rp1_d, 0.0, self.rp3],
                         [self.rb1, 0.0, self.rb3],
                         [0.0, 0.0, 0.0],
                         [0.0, 0.0, 0.0],
@@ -206,10 +206,10 @@ class Vertical_Motion:
             else:
                 self.z_in = self.solver_array[-1]
 
-            self.t = np.linspace(400 * (i), 400 * (i + 1))
+            self.t = np.linspace(400 * (i), 400 * (i + 1), 200)
 
             sol = self.solve_ode(self.z_in, self.t)
-
+            
             if i == 0:
                 self.solver_array = sol.y.T
                 self.total_time = sol.t
@@ -267,6 +267,8 @@ class Vertical_Motion:
 
         pid_var = {
             "theta_prev": self.theta0,
+            # "Omega1_prev": 0.0,
+            # "rp1_prev": self.rp1_d,
         }
 
         utils.save_json(glide_vars)

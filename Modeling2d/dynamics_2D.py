@@ -17,41 +17,48 @@ class Dynamics:
         self.Pb = np.array([z[18:21]]).T
         self.mb = z[21]
         self.theta = z[25]
-
+                        
         self.g, self.I3, self.Z3, self.i_hat, self.j_hat, self.k_hat = utils.constants()
-
+                
         if self.pid_control == "enable":
-            self.theta, self.theta_prev = utils.PID(
-                80,
+            u, self.theta_prev = utils.PID(
+                0.0003,
                 1.5,
                 100,
                 self.theta_d,
                 self.theta,
                 self.theta_prev,
                 0.1,
-                self.Omega[1],
+                -self.Omega[1], # self.n2_dot[1], 
             )
-
+            
+            # breakpoint()
+            
+            print(u)
+            
+            self.u_bar = np.array([[0.001 * u, 0.0, 0.0]]).T
+                    
             pid_vars = {"theta_prev": self.theta_prev}
             utils.save_json(pid_vars, "vars/pid_variables.json")
 
+            
         self.controls = SLOCUM_PARAMS.CONTROLS
 
-        if self.glide_dir == "U":
-            if self.mb <= self.mb_d:
-                self.mb = self.mb_d
+        # if self.glide_dir == "U":
+        #     if self.mb <= self.mb_d:
+        #         self.mb = self.mb_d
 
-        elif self.glide_dir == "D":
-            if self.mb >= self.mb_d:
-                self.mb = self.mb_d
+        # elif self.glide_dir == "D":
+        #     if self.mb >= self.mb_d:
+        #         self.mb = self.mb_d
 
-        if self.glide_dir == "U":
-            if self.rp[0] <= self.rp1_d:
-                self.rp[0] = self.rp1_d
+        # if self.glide_dir == "U":
+        #     if self.rp[0] <= self.rp1_d:
+        #         self.rp[0] = self.rp1_d
 
-        elif self.glide_dir == "D":
-            if self.rp[0] >= self.rp1_d:
-                self.rp[0] = self.rp1_d
+        # elif self.glide_dir == "D":
+        #     if self.rp[0] >= self.rp1_d:
+        #         self.rp[0] = self.rp1_d
 
         self.rp_c = utils.unit_vecs(self.rp)
         self.rb_c = utils.unit_vecs(self.rb)
@@ -60,8 +67,6 @@ class Dynamics:
         self.set_force_torque()
 
         self.R, self.R_T = self.transformation()
-
-        # self.set_limits()
 
         if self.glide_dir == "U":
             self.rp_dot = (
@@ -78,12 +83,32 @@ class Dynamics:
 
             if self.rp[0] >= self.rp1_d:
                 self.rp_dot = np.array([self.Z3]).transpose()
+        
+        # if self.rp_dot.any() != 0: 
+        #     print(self.rp_dot)
 
         self.rb_dot = np.array([self.Z3]).transpose()
-
+        
         # self.Pb = self.mb * (
         #     self.v + np.cross(self.Omega, self.rb, axis=0) + self.rb_dot
         # )
+        
+        # if self.pid_control == "enable":
+        #     u, self.rp1_prev = utils.PID(
+        #         0.0003,
+        #         1.5,
+        #         0.004,
+        #         self.rp1_d,
+        #         self.rp[0],
+        #         self.rp1_prev,
+        #         0.1,
+        #         -self.rp_dot[0],
+        #     )
+            
+        #     self.u_bar = np.array([[u, 0.0, 0.0]]).T
+
+        #     pid_vars = {"rp1_prev": self.rp1_prev.tolist()}
+        #     utils.save_json(pid_vars, "vars/pid_variables.json")
 
         self.m0 = self.mh + self.mw + self.mb + self.mm - self.m
 
@@ -145,6 +170,9 @@ class Dynamics:
         self.mt = var["mt"]
 
         self.theta_prev = pid_var["theta_prev"]
+        # self.Omega1_prev = pid_var["Omega1_prev"]
+        # self.rp1_prev = pid_var["rp1_prev"]
+        
 
     def set_force_torque(self):
         self.alpha = math.atan(self.v[2][0] / self.v[0][0])
@@ -173,11 +201,11 @@ class Dynamics:
 
         self.nu = np.array([self.v, self.Omega], dtype=np.float32)
 
-        tau1 = self.F_ext
-        tau2 = self.T_ext
-        tau = np.array(
-            [tau1.transpose(), tau2.transpose()], dtype=np.float32
-        ).transpose()
+        # tau1 = self.F_ext
+        # tau2 = self.T_ext
+        # tau = np.array(
+        #     [tau1.transpose(), tau2.transpose()], dtype=np.float32
+        # ).transpose()
 
         J1_n2, J2_n2 = utils.transformationMatrix(self.phi, self.theta, self.psi)
 
@@ -191,67 +219,26 @@ class Dynamics:
 
         return R, R_T
 
-    def set_limits(self):
-        if self.glide_dir == "D":
-            self.rp_dot = (
-                (1 / self.mm) * self.Pp + self.v - np.cross(self.Omega, self.rp, axis=0)
-            )
-
-            if self.rp[0] >= self.rp1_d:
-                self.rp[0] = self.rp1_d
-                self.rp_dot = np.array([self.Z3]).transpose()
-
-            if self.mb >= self.mb_d:
-                self.mb = self.mb_d
-                self.ballast_rate = 0
-
-            # Write for mw also
-
-            # self.rb_dot = (1/mb) * self.Pb + self.v - np.cross(self.Omega, self.rb) # Uncomment if ballast mass moves
-            # Assume ballast mass does not move
-            self.rb_dot = np.array([self.Z3]).transpose()
-
-            self.rw_dot = np.array([self.Z3]).transpose()
-
-        elif self.glide_dir == "U":
-            self.rp_dot = (
-                (1 / self.mm) * self.Pp - self.v - np.cross(self.Omega, self.rp, axis=0)
-            )
-
-            if self.rp[0] <= self.rp1_d:
-                self.rp[0] = self.rp1_d
-                self.rp_dot = np.array([self.Z3]).transpose()
-
-            if self.mb <= self.mb_d:
-                self.mb = self.mb_d
-                self.ballast_rate = 0
-
-            # Write for mw also
-
-            # self.rb_dot = (1/mb) * self.Pb - self.v - np.cross(self.Omega, self.rb) # Uncomment if ballast mass moves
-            # Assume ballast mass does not move
-            self.rb_dot = np.array([self.Z3]).transpose()
-
-            self.rw_dot = np.array([self.Z3]).transpose()
-
-        self.Pb = self.mb * (
-            self.v + np.cross(self.Omega, self.rb, axis=0) + self.rb_dot
-        )
-
     def control_transformation(self):
         if self.glide_dir == "D":
             self.wp = np.array(
                 [[self.controls.wp1, self.controls.wp2, self.controls.wp3]]
             ).transpose()
+            # self.wp = np.array(
+            #     [[self.k, self.controls.wp2, self.controls.wp3]]
+            # ).transpose()
         elif self.glide_dir == "U":
             self.wp = np.array(
                 [[-self.controls.wp1, -self.controls.wp2, -self.controls.wp3]]
             ).transpose()
-
+            # self.wp = np.array(
+            #     [[self.k, -self.controls.wp2, -self.controls.wp3]]
+            # ).transpose()
+            
         self.wb = np.array([[0, 0, 0]]).transpose()
 
         self.ww = np.array([[0, 0, 0]]).transpose()
-
+        
         # 3x3 matrix when mw != 0
         # self.F = np.array(
         #     [
@@ -416,7 +403,7 @@ class Dynamics:
         self.u = self.u.reshape(2, 3)
 
         self.u_bar = np.array([self.u[0]]).T
-
+                
         # print(np.array([self.u[1]]).T)
 
         self.u_b = np.array([self.Z3]).T
@@ -428,17 +415,49 @@ class Dynamics:
 
         if self.glide_dir == "D":
             if self.rp[0] >= self.rp1_d:
-                self.u_bar = np.array([self.Z3]).T
+                self.u_bar = np.array([[0.0, 0.0, 0.0]]).T
+            # else:
+            #     self.u_bar = np.array([[0.18, 0.0, 0.0]]).T
+                
+            # else:
+            #     print(self.u_bar)
 
         if self.glide_dir == "U":
             if self.rp[0] <= self.rp1_d:
-                self.u_bar = np.array([self.Z3]).T
+                self.u_bar = np.array([[0.0, 0.0, 0.0]]).T
+            # else:
+            #     self.u_bar = np.array([[-0.18, 0.0, 0.0]]).T
+            # else:
+            #     print(self.u_bar)
 
         # Write for u_b and u_w as well
 
     def set_eom(self):
         self.set_controls()
-
+        
+        # if self.pid_control == "enable":
+        #     k, self.theta_prev = utils.PID(
+        #         0.0003,
+        #         1.5,
+        #         100,
+        #         self.theta_d,
+        #         self.theta,
+        #         self.theta_prev,
+        #         0.1,
+        #         -self.Omega[1], # self.n2_dot[1], 
+        #     )
+            
+        #     # breakpoint()
+            
+        #     print(k)
+            
+        #     self.u_bar = np.array([[k, 0.0, 0.0]]).T
+                    
+        #     pid_vars = {"theta_prev": self.theta_prev}
+        #     utils.save_json(pid_vars, "vars/pid_variables.json")
+        
+        self.u_b = np.array([self.Z3]).T
+        
         T_bar = (
             np.cross(
                 (self.J @ self.Omega + self.rp_c @ self.Pp + self.rb_c @ self.Pb),
@@ -469,7 +488,7 @@ class Dynamics:
         n1_dot = self.R @ self.v
 
         Omega_dot = np.linalg.inv(self.J) @ T_bar
-
+        
         v1_dot = np.linalg.inv(self.M) @ F_bar
 
         # rp_dot solved earlier
@@ -479,7 +498,7 @@ class Dynamics:
         # rw_dot solved earlier
 
         Pp_dot = self.u_bar
-
+        
         Pb_dot = self.u_b
 
         # Pw_dot = self.u_w

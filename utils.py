@@ -71,13 +71,19 @@ def load_json(path="vars/2d_glider_variables.json"):
 
 
 def PID(kp, ki, kd, setpoint, measured, integral, dt, derivative):
+    # breakpoint()
     error = setpoint - measured
     P = kp * error
     integral = dt * error + integral
     I = ki * integral
     D = kd * derivative
-
-    pid = P + I - D
+    
+    # print(error)
+    
+    pid = P + I + D
+    
+    if error <= 0.0003:
+        pid=0
 
     return -pid, integral
 

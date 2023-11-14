@@ -25,7 +25,7 @@ class Dynamics:
             + math.pow(self.v[1][0], 2)
             + math.pow(self.v[2][0], 2)
         )
-
+        
         self.g, self.I3, self.Z3, self.i_hat, self.j_hat, self.k_hat = utils.constants()
 
         if self.pid_control == "enable":
@@ -37,7 +37,7 @@ class Dynamics:
                 self.theta,
                 self.theta_prev,
                 0.1,
-                self.Omega[1],
+                -self.Omega[1],
             )
 
             self.phi, self.phi_prev = utils.PID(
@@ -48,7 +48,7 @@ class Dynamics:
                 self.phi,
                 self.phi_prev,
                 0.1,
-                self.Omega[0],
+                -self.Omega[0],
             )
 
             pid_vars = {"theta_prev": self.theta_prev, "phi_prev": self.phi_prev}
@@ -111,7 +111,7 @@ class Dynamics:
         self.v3_d = var["v3_d"]
         self.m0_d = var["m0_d"]
         self.rp1_d = var["rp1_d"]
-        self.rp2_d = var["rp2"]
+        # self.rp2_d = var["rp2"]
         self.rp3 = var["rp3"]
         self.rb1 = var["rb1"]
         self.rb2 = var["rb2"]
@@ -153,6 +153,9 @@ class Dynamics:
         self.m = var["m"]
         self.m0 = var["m0"]
         self.mt = var["mt"]
+        
+        self.rudder = var["rudder"]
+        self.rudder_angle = var["rudder_angle"]
 
         self.theta_prev = pid_var["theta_prev"]
         self.phi_prev = pid_var["phi_prev"]
@@ -160,10 +163,24 @@ class Dynamics:
     def set_force_torque(self):
         self.alpha = math.atan(self.v[2][0] / self.v[0][0])
         self.beta = math.asin(self.v[1][0] / self.V)
+        
+        if self.rudder == "enable":
+            self.delta = self.rudder_angle
+            
+            KD_delta = 2.0
+            KFS_delta = 5.0
+            KMY_delta = 1
+        
+        elif self.rudder == "disable":
+            self.delta = 0.0
+            
+            KD_delta = 0.0
+            KFS_delta = 0.0
+            KMY_delta = 0.0
 
         L = (self.KL0 + self.KL * self.alpha) * (math.pow(self.V, 2))
-        D = (self.KD0 + self.KD * (math.pow(self.alpha, 2))) * (math.pow(self.V, 2))
-        SF = self.K_beta * self.beta * math.pow(self.V, 2)
+        D = (self.KD0 + self.KD * (math.pow(self.alpha, 2)) + KD_delta * (math.pow(self.delta, 2))) * (math.pow(self.V, 2))
+        SF = (self.K_beta * self.beta + KFS_delta * self.delta) * math.pow(self.V, 2)
 
         MDL1 = (self.K_MR * self.beta + self.KOmega11 * self.Omega[0][0]) * math.pow(
             self.V, 2
@@ -171,7 +188,7 @@ class Dynamics:
         MDL2 = (self.KM0 + self.KM * self.alpha + self.KOmega12 * self.Omega[1][0]) * (
             math.pow(self.V, 2)
         )
-        MDL3 = (self.K_MY * self.beta + self.KOmega13 * self.Omega[2][0]) * math.pow(
+        MDL3 = (self.K_MY * self.beta + self.KOmega13 * self.Omega[2][0] + KMY_delta * self.delta) * math.pow(
             self.V, 2
         )
 

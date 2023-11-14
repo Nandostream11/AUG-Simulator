@@ -70,6 +70,8 @@ class SLOCUM_PARAMS:
         PSI = 0.0  # yaw angle in degrees
 
         BETA = 1.0  # sideslip angle in degrees
+        
+        RUDDER = 10.0 # rudder angle
 
     class CONTROLS:
         wp1 = 0.001  # m/s2

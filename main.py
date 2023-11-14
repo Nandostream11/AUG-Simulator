@@ -2,6 +2,8 @@ import argparse
 from Modeling2d.glider_model_2D import Vertical_Motion
 from Modeling3d.glider_model_3D import ThreeD_Motion
 from Parameters.slocum import SLOCUM_PARAMS
+from Parameters.slocum3D import SLOCUM_PARAMS as params_3D
+
 
 
 def main(args):
@@ -52,6 +54,19 @@ if __name__ == "__main__":
         "--pid",
         help="enable or disable PID pitch control",
         default="disable",
+    )
+    parser.add_argument(
+        "-r",
+        "--rudder",
+        help="enable or disable rudder",
+        default="disable",
+    )
+    parser.add_argument(
+        "-sr",
+        "--setrudder",
+        help="desired rudder angle. Defaults to 10 degrees",
+        default=params_3D.VARIABLES.RUDDER,
+        type=float,
     )
     parser.add_argument(
         "-p",
