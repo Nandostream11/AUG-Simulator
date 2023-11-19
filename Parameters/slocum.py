@@ -61,7 +61,7 @@ class SLOCUM_PARAMS:
         PSI = 0.0  # degrees
 
     class CONTROLS:
-        wp1 = 0.02
+        wp1 = 0.02 # 0.005
         wp2 = 0.0
         wp3 = 0.0
 
