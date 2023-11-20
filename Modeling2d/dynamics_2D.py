@@ -22,19 +22,11 @@ class Dynamics:
 
         self.g, self.I3, self.Z3, self.i_hat, self.j_hat, self.k_hat = utils.constants()
 
-        self.V = math.sqrt(
-            math.pow(self.v[0][0], 2)
-            + math.pow(self.v[1][0], 2)
-            + math.pow(self.v[2][0], 2)
-        )
-
-        print(math.degrees(self.theta))
-
         if self.pid_control == "enable":
             self.rp1, self.theta_prev, self.error = utils.PID(
                 0.05,
-                -0.0,
                 0.0,
+                0.0005,
                 self.theta_d,
                 self.theta,
                 self.theta_prev,
@@ -110,7 +102,6 @@ class Dynamics:
     def initialization(self):
         var = utils.load_json("vars/2d_glider_variables.json")
         pid_var = utils.load_json("vars/pid_variables.json")
-        der_var = utils.load_json("vars/der.json")
 
         self.pid_control = var["pid_control"]
         self.alpha_d = var["alpha_d"]
