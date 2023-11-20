@@ -32,8 +32,8 @@ class SLOCUM_PARAMS:
         KM = -100
         KM0 = 0.0
 
-        KOmega1 = -50
-        KOmega2 = -50
+        KOmega1 = 50
+        KOmega2 = 50
 
     class VARIABLES:
         GLIDE_ANGLE = 25  # degrees

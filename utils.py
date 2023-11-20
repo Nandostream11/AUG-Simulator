@@ -77,11 +77,9 @@ def PID(kp, ki, kd, setpoint, measured, integral, dt, derivative):
     I = ki * integral
     D = kd * derivative
 
-    # print(error)
+    pid = P + I + D  # rp1
 
-    pid = P + I + D     # rp1
-
-    return -pid, integral, error
+    return pid, integral, error
 
 
 def plots(t, x, plot):

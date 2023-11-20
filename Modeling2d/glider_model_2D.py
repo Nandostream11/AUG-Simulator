@@ -116,7 +116,6 @@ class Vertical_Motion:
         )
 
         l = len(self.E_i_d)
-        l = 2
         for i in range(l):
             self.e_i_d = self.E_i_d[i]
 
@@ -170,7 +169,7 @@ class Vertical_Motion:
                 (self.Mf[2, 2] - self.Mf[0, 0]) * self.v1_d * self.v3_d
                 + (self.KM0 + self.KM * self.alpha_d) * math.pow(self.V_d, 2)
             )
-            
+
             if self.info == True:
                 print(
                     "Desired angle of attack in deg = {}".format(
@@ -194,7 +193,7 @@ class Vertical_Motion:
                         [0.0, 0.0, 0.0],
                         [0.0, 0.0, 0.0],
                         [self.v1_d, 0.0, self.v3_d],
-                        [0.0, 0.0, self.rp3], # [self.rp1_d, 0.0, self.rp3],
+                        [0.0, 0.0, self.rp3],  # [self.rp1_d, 0.0, self.rp3],
                         [self.rb1, 0.0, self.rb3],
                         [0.0, 0.0, 0.0],
                         [0.0, 0.0, 0.0],
@@ -209,7 +208,7 @@ class Vertical_Motion:
             self.t = np.linspace(400 * (i), 400 * (i + 1), 200)
 
             sol = self.solve_ode(self.z_in, self.t)
-                        
+
             if i == 0:
                 self.solver_array = sol.y.T
                 self.total_time = sol.t
@@ -267,18 +266,10 @@ class Vertical_Motion:
 
         pid_var = {
             "theta_prev": self.theta0,
-            "rp1_d": self.rp1_d,
-            # "Omega1_prev": 0.0,
-            # "rp1_prev": 0.0,
         }
-        
-        # der_var = {
-        #     "rp1_der_prev": 0.0,
-        # }
 
         utils.save_json(glide_vars)
         utils.save_json(pid_var, "vars/pid_variables.json")
-        # utils.save_json(der_var, "vars/der.json")
 
     def solve_ode(self, z0, time):
         def dvdt(t, y):
@@ -293,7 +284,7 @@ class Vertical_Motion:
             method="RK45",
             t_eval=time,
             dense_output=False,
-            atol=1e-9, rtol=1e-6,
+            # atol=1e-9, rtol=1e-6,
         )
 
         return sol
