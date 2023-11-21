@@ -2,11 +2,7 @@
 
 ## Introduction
 
-The AUG simulator allows us to simulate the behavior of autonomous underwater gliders so as to analyse their performance and motions, both in a two dimensional as well as three dimensional setting.
-
-## Requirements
-
-- Python _version_
+The AUG simulator allows us to simulate the behavior of autonomous underwater gliders so as to analyse their performance and motions, both in a two dimensional as well as three dimensional setting. A PID controller is also implemented for pitch control.
 
 ## Installation
 
@@ -15,7 +11,7 @@ The AUG simulator allows us to simulate the behavior of autonomous underwater gl
 git clone https://github.com/Bhaswanth-A/AUG-Simulator.git
 
 # install dependencies
-# to be updated
+pip install -r requirements.txt
 
 # run simulator
 python3 main.py
@@ -58,7 +54,6 @@ options:
 - [x] Vertical plane simulations
 - [x] 3D simulations
 - [x] Rudder
-- [ ] PID
-- [ ] Export sim data
+- [x] PID
 - [x] Params in YAML/py file
 

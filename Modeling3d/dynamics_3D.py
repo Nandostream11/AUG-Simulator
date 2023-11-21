@@ -27,9 +27,7 @@ class Dynamics:
             + math.pow(self.v[1][0], 2)
             + math.pow(self.v[2][0], 2)
         )
-        
-        print(self.V)
-        
+
         self.g, self.I3, self.Z3, self.i_hat, self.j_hat, self.k_hat = utils.constants()
 
         if self.pid_control == "enable":
@@ -57,7 +55,7 @@ class Dynamics:
 
             pid_vars = {"theta_prev": self.theta_prev, "phi_prev": self.phi_prev}
             utils.save_json(pid_vars, "vars/pid_variables.json")
-            
+
         else:
             self.rp1 = 0
             self.rp2 = 0
@@ -161,7 +159,7 @@ class Dynamics:
         self.m = var["m"]
         self.m0 = var["m0"]
         self.mt = var["mt"]
-        
+
         self.rudder = var["rudder"]
         self.rudder_angle = var["rudder_angle"]
 
@@ -171,23 +169,27 @@ class Dynamics:
     def set_force_torque(self):
         self.alpha = math.atan(self.v[2][0] / self.v[0][0])
         self.beta = math.asin(self.v[1][0] / self.V)
-        
+
         if self.rudder == "enable":
             self.delta = self.rudder_angle
-            
+
             KD_delta = 2.0
             KFS_delta = 5.0
             KMY_delta = 1
-        
+
         elif self.rudder == "disable":
             self.delta = 0.0
-            
+
             KD_delta = 0.0
             KFS_delta = 0.0
             KMY_delta = 0.0
 
         L = (self.KL0 + self.KL * self.alpha) * (math.pow(self.V, 2))
-        D = (self.KD0 + self.KD * (math.pow(self.alpha, 2)) + KD_delta * (math.pow(self.delta, 2))) * (math.pow(self.V, 2))
+        D = (
+            self.KD0
+            + self.KD * (math.pow(self.alpha, 2))
+            + KD_delta * (math.pow(self.delta, 2))
+        ) * (math.pow(self.V, 2))
         SF = (self.K_beta * self.beta + KFS_delta * self.delta) * math.pow(self.V, 2)
 
         MDL1 = (self.K_MR * self.beta + self.KOmega11 * self.Omega[0][0]) * math.pow(
@@ -196,9 +198,11 @@ class Dynamics:
         MDL2 = (self.KM0 + self.KM * self.alpha + self.KOmega12 * self.Omega[1][0]) * (
             math.pow(self.V, 2)
         )
-        MDL3 = (self.K_MY * self.beta + self.KOmega13 * self.Omega[2][0] + KMY_delta * self.delta) * math.pow(
-            self.V, 2
-        )
+        MDL3 = (
+            self.K_MY * self.beta
+            + self.KOmega13 * self.Omega[2][0]
+            + KMY_delta * self.delta
+        ) * math.pow(self.V, 2)
 
         self.F_ext = np.array([[-D, SF, -L]]).transpose()  # same as X, Y, Z
 
@@ -236,7 +240,7 @@ class Dynamics:
         if self.glide_dir == "D":
             rp1_err = self.rp[0] - self.rp1_d - abs(self.rp1)
             rp2_err = self.rp[1] - self.rp2_d - abs(self.rp2)
-            
+
         elif self.glide_dir == "U":
             self.rp_dot = -self.rp_dot
             rp1_err = self.rp[0] - self.rp1_d + abs(self.rp1)
@@ -246,24 +250,20 @@ class Dynamics:
             pv1 = -(rp1_err / abs(rp1_err)) * 0.01  # 0.005
         else:
             pv1 = 0
-            
+
         if rp2_err != 0 and abs(rp2_err) > 0.001:
             pv2 = -(rp2_err / abs(rp2_err)) * 0.01  # 0.005
         else:
             pv2 = 0
-        
+
         self.w1 = pv1 - self.rp_dot[0] - self.rp_dot[0] * abs(self.rp_dot[0])
-        
+
         self.w2 = pv2 - self.rp_dot[1] - self.rp_dot[1] * abs(self.rp_dot[1])
-        
+
         if self.glide_dir == "D":
-            self.wp = np.array(
-                [[self.w1, self.w2, self.controls.wp3]]
-            ).transpose()
+            self.wp = np.array([[self.w1, self.w2, self.controls.wp3]]).transpose()
         elif self.glide_dir == "U":
-            self.wp = np.array(
-                [[-self.w1, -self.w2, -self.controls.wp3]]
-            ).transpose()
+            self.wp = np.array([[-self.w1, -self.w2, -self.controls.wp3]]).transpose()
 
         self.wb = np.array([[0, 0, 0]]).transpose()
 
@@ -465,7 +465,7 @@ class Dynamics:
         # self.Pw = self.mw * (self.v + np.cross(self.Omega,self.rw, axis=0) + self.rw_dot)
 
         self.Pb = np.array([[0.0, 0.0, 0.0]]).T
-        
+
         self.set_controls()
 
         T_bar = (
@@ -504,7 +504,7 @@ class Dynamics:
         # Pb_dot = self.u_b
 
         # Pw_dot = self.u_w
-        
+
         rp_ddot = self.wp
 
         rb_ddot = self.wb

@@ -5,7 +5,6 @@ from Parameters.slocum import SLOCUM_PARAMS
 from Parameters.slocum3D import SLOCUM_PARAMS as params_3D
 
 
-
 def main(args):
     if args.mode == "2D":
         Z = Vertical_Motion(args)

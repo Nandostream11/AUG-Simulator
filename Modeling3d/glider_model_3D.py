@@ -79,10 +79,10 @@ class ThreeD_Motion:
         self.KOmega23 = self.hydro_params.KOmega23
 
         if self.rudder == "enable":
-            self.rp2_d = 0.0 
+            self.rp2_d = 0.0
         if self.rudder == "disable":
             self.rp2_d = self.vars.rp2
-        
+
         self.rp3 = self.vars.rp3
         self.rb1 = self.vars.rb1
         self.rb2 = self.vars.rb2
@@ -213,7 +213,7 @@ class ThreeD_Motion:
                         [0.0, 0.0, 0.0],
                         [self.Omega0[0], self.Omega0[1], self.Omega0[2]],
                         [self.v1_d, self.v2_d, self.v3_d],
-                        [0.0, 0.0, self.rp3], # [self.rp1_d, self.rp2_d, self.rp3],
+                        [0.0, 0.0, self.rp3],  # [self.rp1_d, self.rp2_d, self.rp3],
                         [self.rb1, self.rb2, self.rb3],
                         [0.0, 0.0, 0.0],
                         [0.0, 0.0, 0.0],
