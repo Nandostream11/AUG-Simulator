@@ -202,11 +202,11 @@ class Dynamics:
             rp1_err = self.rp[0] - self.rp1_d + abs(self.rp1)
 
         if rp1_err != 0 and abs(rp1_err) > 0.001:
-            pv1 = -(rp1_err / abs(rp1_err)) * 0.01  # 0.005
+            r = -(rp1_err / abs(rp1_err)) * self.controls.wp1 # 0.005
         else:
-            pv1 = 0
+            r = 0
 
-        self.w1 = pv1 - self.rp_dot[0] - self.rp_dot[0] * abs(self.rp_dot[0])
+        self.w1 = r - self.rp_dot[0] - self.rp_dot[0] * abs(self.rp_dot[0])
 
         if self.glide_dir == "D":
             self.wp = np.array(
@@ -216,7 +216,7 @@ class Dynamics:
             self.wp = np.array(
                 [[-self.w1, -self.controls.wp2, -self.controls.wp3]]
             ).transpose()
-
+                                            
         self.wb = np.array([[0, 0, 0]]).transpose()
 
         self.ww = np.array([[0, 0, 0]]).transpose()

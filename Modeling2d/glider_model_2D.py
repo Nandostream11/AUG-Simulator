@@ -7,6 +7,7 @@ from Modeling2d.dynamics_2D import Dynamics
 
 class Vertical_Motion:
     def __init__(self, args):
+        self.w1 = []
         self.args = args
         self.mode = self.args.mode
         if self.mode == "3D":
@@ -215,6 +216,9 @@ class Vertical_Motion:
             else:
                 self.solver_array = np.concatenate((self.solver_array, sol.y.T))
                 self.total_time = np.concatenate((self.total_time, sol.t))
+                
+        # import matplotlib.pyplot as plt
+        # plt.plot(np.linspace(0, 5864, 5864), self.w1); plt.show()
 
         utils.plots(self.total_time, self.solver_array.T, self.plots)
 
@@ -275,6 +279,8 @@ class Vertical_Motion:
         def dvdt(t, y):
             eom = Dynamics(y)
             D = eom.set_eom()
+            w = D[15]
+            self.w1.append(w)
             return D
 
         sol = solve_ivp(
@@ -283,7 +289,6 @@ class Vertical_Motion:
             y0=z0,
             method="RK45",
             t_eval=time,
-            dense_output=False,
             # atol=1e-9, rtol=1e-6,
         )
 

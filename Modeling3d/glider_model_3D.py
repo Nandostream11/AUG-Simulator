@@ -328,7 +328,9 @@ class ThreeD_Motion:
 
         pid_var = {
             "theta_prev": self.theta0,
-            "phi_prev": self.phi0,
+            # "phi_prev": self.phi0,
+            "delta_prev": 0.0,
+            "delta": self.rudder_angle
         }
 
         utils.save_json(glide_vars, "vars/3d_glider_variables.json")
