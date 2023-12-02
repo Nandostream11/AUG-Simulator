@@ -1,6 +1,7 @@
 import argparse
 from Modeling2d.glider_model_2D import Vertical_Motion
 from Modeling3d.glider_model_3D import ThreeD_Motion
+from Waypoint.glider_model_waypoint import Waypoint_Following
 from Parameters.slocum import SLOCUM_PARAMS
 from Parameters.slocum3D import SLOCUM_PARAMS as params_3D
 
@@ -10,6 +11,8 @@ def main(args):
         Z = Vertical_Motion(args)
     elif args.mode == "3D":
         Z = ThreeD_Motion(args)
+    elif args.mode == "waypoint":
+        Z = Waypoint_Following(args)
     Z.set_desired_trajectory()
 
 
@@ -20,7 +23,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-i", "--info", help="give full information in each cycle", action="store_true"
     )
-    parser.add_argument("-m", "--mode", help="set mode as 2D or 3D", default="2D")
+    parser.add_argument("-m", "--mode", help="set mode as 2D, 3D, or waypoint", default="2D")
     parser.add_argument(
         "-c",
         "--cycle",

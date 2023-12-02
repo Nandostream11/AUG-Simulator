@@ -7,6 +7,7 @@ from Modeling3d.dynamics_3D import Dynamics
 
 class ThreeD_Motion:
     def __init__(self, args):
+        self.w1 = []
         self.args = args
         self.mode = self.args.mode
         if self.mode == "3D":
@@ -24,7 +25,6 @@ class ThreeD_Motion:
 
         self.solver_array = np.array([])
         self.total_time = np.array([])
-        self.derivative = np.array([])
 
     def initialization(self):
         self.g, self.I3, self.Z3, self.i_hat, self.j_hat, self.k_hat = utils.constants()
@@ -219,6 +219,7 @@ class ThreeD_Motion:
                         [0.0, 0.0, 0.0],
                         [self.mb_d, 0, 0],
                         [self.phi0, self.theta0, self.psi0],
+                        [0, 0, 0]
                     ]
                 ).ravel()
 
@@ -227,7 +228,7 @@ class ThreeD_Motion:
 
             self.t = np.linspace(2000 * (i), 2000 * (i + 1), 1000)
 
-            sol = self.solve_ode(self.z_in, self.t)
+            sol = self.solve_ode(self.z_in[:-3], self.t)
 
             if i == 0:
                 self.solver_array = sol.y.T
@@ -263,6 +264,10 @@ class ThreeD_Motion:
                 print("Equilibrium glide speed: {} m/s".format(v))
                 print("Radius : {} m".format(R))
 
+        # import matplotlib.pyplot as plt
+        # breakpoint()
+        # plt.plot(np.linspace(0, 5864, 5864), self.w1); plt.show()
+        
         utils.plots(self.total_time, self.solver_array.T, self.plots)
 
     def save_json(self):
@@ -340,8 +345,9 @@ class ThreeD_Motion:
         def dvdt(t, y):
             eom = Dynamics(y)
             D = eom.set_eom()
-            self.derivative = np.concatenate((self.derivative, np.array([D[-3]])))
-            return D
+            w = D[-3]
+            self.w1.append(w)
+            return D[:-3]
 
         sol = solve_ivp(
             dvdt,

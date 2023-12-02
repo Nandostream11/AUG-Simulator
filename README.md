@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The AUG simulator allows us to simulate the behavior of autonomous underwater gliders so as to analyse their performance and motions, both in a two dimensional as well as three dimensional setting. A PID controller is also implemented for pitch control.
+The AUG simulator allows us to simulate the behavior of autonomous underwater gliders so as to analyse their performance and motions, both in a two dimensional as well as three dimensional setting. A PID controller is also implemented for pitch and rudder control.
 
 ## Installation
 

@@ -74,7 +74,7 @@ class SLOCUM_PARAMS:
         RUDDER = 10.0 # rudder angle
 
     class CONTROLS:
-        wp1 = 0.001  # m/s2
+        wp1 = 0.01  # m/s2
         wp2 = 0.0
         wp3 = 0.0
 

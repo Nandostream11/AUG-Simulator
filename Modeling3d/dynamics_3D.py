@@ -257,38 +257,76 @@ class Dynamics:
         return R, R_T
 
     def control_transformation(self):
+        
+        # if self.pid_control == "enable":
+        #     if self.glide_dir == "D":
+        #         rp1_err = self.rp[0] - self.rp1_d - abs(self.rp1)
+        #         if self.rudder == "disable":
+        #             rp2_err = self.rp[1] - self.rp2_d - abs(self.rp2)
+        #         else:
+        #             rp2_err = 0.0
+
+        #     elif self.glide_dir == "U":
+        #         self.rp_dot = -self.rp_dot
+        #         rp1_err = self.rp[0] - self.rp1_d + abs(self.rp1)
+        #         if self.rudder == "disable":
+        #             rp2_err = self.rp[1] - self.rp2_d + abs(self.rp2)
+        #         else:
+        #             rp2_err = 0.0
+
+        #     if rp1_err != 0 and abs(rp1_err) > 0.001:
+        #         pv1 = -(rp1_err / abs(rp1_err)) * 0.01  # 0.005
+        #     else:
+        #         pv1 = 0
+
+        #     if self.rudder == "disable":
+        #         if rp2_err != 0 and abs(rp2_err) > 0.001:
+        #             pv2 = -(rp2_err / abs(rp2_err)) * 0.01  # 0.005
+        #         else:
+        #             pv2 = 0
+                    
+        #         self.w2 = pv2 - self.rp_dot[1] - self.rp_dot[1] * abs(self.rp_dot[1])
+                
+        #     else: 
+        #         self.w2 = self.controls.wp2
+                
+        #     self.w1 = pv1 - self.rp_dot[0] - self.rp_dot[0] * abs(self.rp_dot[0])
+            
+        # elif self.pid_control == "disable":
         if self.glide_dir == "D":
-            rp1_err = self.rp[0] - self.rp1_d - abs(self.rp1)
-            if self.rudder == "disable":
-                rp2_err = self.rp[1] - self.rp2_d - abs(self.rp2)
-            else:
-                rp2_err = 0.0
+            if self.rp[0] >= self.rp1_d:
+                self.w1 = 0.0
+                self.rp_dot = np.array([[0, 0, 0]]).transpose()
+            elif self.rp[0] < self.rp1_d:
+                self.w1 = self.controls.wp1
+            
+            if self.rudder == "disable": 
+                if self.rp[1] >= self.rp2_d:
+                    self.w2 = 0.0
+                    self.rp_dot = np.array([[0, 0, 0]]).transpose()
+                elif self.rp[1] < self.rp2_d:
+                    self.w2 = self.controls.wp1
+            
+            elif self.rudder == "enable":
+                self.w2 = 0.0
 
         elif self.glide_dir == "U":
             self.rp_dot = -self.rp_dot
-            rp1_err = self.rp[0] - self.rp1_d + abs(self.rp1)
+            if self.rp[0] <= self.rp1_d:
+                self.w1 = 0.0
+                self.rp_dot = np.array([[0, 0, 0]]).transpose()
+            elif self.rp[0] > self.rp1_d:
+                self.w1 = -self.controls.wp1
+            
             if self.rudder == "disable":
-                rp2_err = self.rp[1] - self.rp2_d + abs(self.rp2)
-            else:
-                rp2_err = 0.0
-
-        if rp1_err != 0 and abs(rp1_err) > 0.001:
-            pv1 = -(rp1_err / abs(rp1_err)) * 0.01  # 0.005
-        else:
-            pv1 = 0
-
-        if self.rudder == "disable":
-            if rp2_err != 0 and abs(rp2_err) > 0.001:
-                pv2 = -(rp2_err / abs(rp2_err)) * 0.01  # 0.005
-            else:
-                pv2 = 0
-                
-            self.w2 = pv2 - self.rp_dot[1] - self.rp_dot[1] * abs(self.rp_dot[1])
-            
-        else: 
-            self.w2 = self.controls.wp2
-            
-        self.w1 = pv1 - self.rp_dot[0] - self.rp_dot[0] * abs(self.rp_dot[0])
+                if self.rp[1] <= self.rp2_d:
+                    self.w2 = 0.0
+                    self.rp_dot = np.array([[0, 0, 0]]).transpose()
+                elif self.rp[1] > self.rp2_d:
+                    self.w2 = -self.controls.wp1
+                    
+            elif self.rudder == "enable":
+                self.w2 = 0.0
 
         if self.glide_dir == "D":
             self.wp = np.array([[self.w1, self.w2, self.controls.wp3]]).transpose()
@@ -554,6 +592,7 @@ class Dynamics:
                 rb_ddot,
                 mb_dot,
                 self.n2_dot,
+                np.array([[self.delta, 0.0, 0.0]]).T
             ]
         ).ravel()
 
