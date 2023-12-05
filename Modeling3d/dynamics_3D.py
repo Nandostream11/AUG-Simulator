@@ -27,64 +27,15 @@ class Dynamics:
             + math.pow(self.v[1][0], 2)
             + math.pow(self.v[2][0], 2)
         )
-        
+
         self.g, self.I3, self.Z3, self.i_hat, self.j_hat, self.k_hat = utils.constants()
-        
+
         self.set_force_torque()
-
-        if self.pid_control == "enable":
-            # self.rp1, self.theta_prev, self.error = utils.PID(
-            #     0.05,
-            #     0.0,
-            #     0.0005,
-            #     self.theta_d,
-            #     self.theta,
-            #     self.theta_prev,
-            #     0.1,
-            #     -self.Omega[1],
-            # )
-            
-            self.rp1 = 0
-
-            # self.rp2, self.phi_prev, self.e = utils.PID(
-            #     0.05,
-            #     0.0,
-            #     0.0005,
-            #     np.array(math.radians(20)),
-            #     self.phi,
-            #     self.phi_prev,
-            #     0.1,
-            #     -self.Omega[0],
-            # )
-            
-            pid_vars = {"theta_prev": self.theta_prev, "delta_prev": self.delta_prev, "delta": self.delta}
-            utils.save_json(pid_vars, "vars/pid_variables.json")
-
-        else:
-            self.rp1 = 0
-            self.rp2 = 0
 
         self.controls = SLOCUM_PARAMS.CONTROLS
 
-        # if self.glide_dir == "U":
-        #     if self.mb <= self.mb_d:
-        #         self.mb = self.mb_d
-
-        # elif self.glide_dir == "D":
-        #     if self.mb >= self.mb_d:
-        #         self.mb = self.mb_d
-
-        # if self.glide_dir == "U":
-        #     if self.rp[0] <= self.rp1_d:
-        #         self.rp[0] = self.rp1_d
-
-        # elif self.glide_dir == "D":
-        #     if self.rp[0] >= self.rp1_d:
-        #         self.rp[0] = self.rp1_d
-
         self.rp_c = utils.unit_vecs(self.rp)
         self.rb_c = utils.unit_vecs(self.rb)
-        # self.rw_c = utils.unit_vecs(self.rw)
 
         self.R, self.R_T = self.transformation()
 
@@ -94,16 +45,12 @@ class Dynamics:
 
         self.m0 = self.mh + self.mw + self.mb + self.mm - self.m
 
-        if self.glide_dir == "U":
-            if self.mb <= self.mb_d:
-                self.ballast_rate = 0
-        elif self.glide_dir == "D":
+        if self.glide_dir == "D":
             if self.mb >= self.mb_d:
                 self.ballast_rate = 0
 
     def initialization(self):
         var = utils.load_json("vars/3d_glider_variables.json")
-        pid_var = utils.load_json("vars/pid_variables.json")
 
         self.pid_control = var["pid_control"]
         self.alpha_d = var["alpha_d"]
@@ -124,11 +71,6 @@ class Dynamics:
         self.rb1 = var["rb1"]
         self.rb2 = var["rb2"]
         self.rb3 = var["rb3"]
-        # self.rw1 = var["rw1"]
-        # self.rw2 = var["rw2"]
-        # self.rw3 = var["rw3"]
-        # self.Pp1_d = var["Pp1_d"]
-        # self.Pp3_d = var["Pp3_d"]
         self.phi0 = var["phi0"]
         self.theta0 = var["theta0"]
         self.psi0 = var["psi0"]
@@ -163,47 +105,39 @@ class Dynamics:
         self.mt = var["mt"]
 
         self.rudder = var["rudder"]
-        self.rudder_angle = var["rudder_angle"]        
+        self.rudder_angle = var["rudder_angle"]
 
-        self.theta_prev = pid_var["theta_prev"]
-        # self.phi_prev = pid_var["phi_prev"]
-        self.delta_prev = pid_var["delta_prev"]
-        self.delta = pid_var["delta"]
-
-        
     def set_force_torque(self):
         self.alpha = math.atan(self.v[2][0] / self.v[0][0])
         self.beta = math.asin(self.v[1][0] / self.V)
 
         if self.rudder == "enable":
-
             KD_delta = 2.0
             KFS_delta = 5.0
-            KMY_delta = 1  
-            
+            KMY_delta = 1
+
             if self.pid_control == "disable":
-                self.delta = self.rudder_angle            
-                        
-            elif self.pid_control == "enable":
-                self.delta, self.delta_prev, self.error = utils.PID(
-                    0.8,
-                    0.01,
-                    0.0,
-                    math.radians(25),   # Change this to the desired rudder angle
-                    self.delta,
-                    self.delta_prev,
-                    0.1,
-                    0.0,
-                )   
-                            
+                self.delta = self.rudder_angle
+
+            # elif self.pid_control == "enable":
+            #     self.delta, self.delta_prev, self.error = utils.PID(
+            #         0.8,
+            #         0.01,
+            #         0.0,
+            #         math.radians(25),   # Change this to the desired rudder angle
+            #         self.delta,
+            #         self.delta_prev,
+            #         0.1,
+            #         0.0,
+            #     )
+
         elif self.rudder == "disable":
             self.delta = 0.0
 
             KD_delta = 0.0
             KFS_delta = 0.0
             KMY_delta = 0.0
-        
-        
+
         L = (self.KL0 + self.KL * self.alpha) * (math.pow(self.V, 2))
         D = (
             self.KD0
@@ -249,89 +183,31 @@ class Dynamics:
         self.n1_dot = self.J1_n2 @ self.v
         self.n2_dot = self.J2_n2 @ self.Omega
 
-        # Replace R with J1_n2 later
-
         R = self.J1_n2
         R_T = R.T  # same as np.linalg.inv(self.R)
 
         return R, R_T
 
     def control_transformation(self):
-        
-        # if self.pid_control == "enable":
-        #     if self.glide_dir == "D":
-        #         rp1_err = self.rp[0] - self.rp1_d - abs(self.rp1)
-        #         if self.rudder == "disable":
-        #             rp2_err = self.rp[1] - self.rp2_d - abs(self.rp2)
-        #         else:
-        #             rp2_err = 0.0
-
-        #     elif self.glide_dir == "U":
-        #         self.rp_dot = -self.rp_dot
-        #         rp1_err = self.rp[0] - self.rp1_d + abs(self.rp1)
-        #         if self.rudder == "disable":
-        #             rp2_err = self.rp[1] - self.rp2_d + abs(self.rp2)
-        #         else:
-        #             rp2_err = 0.0
-
-        #     if rp1_err != 0 and abs(rp1_err) > 0.001:
-        #         pv1 = -(rp1_err / abs(rp1_err)) * 0.01  # 0.005
-        #     else:
-        #         pv1 = 0
-
-        #     if self.rudder == "disable":
-        #         if rp2_err != 0 and abs(rp2_err) > 0.001:
-        #             pv2 = -(rp2_err / abs(rp2_err)) * 0.01  # 0.005
-        #         else:
-        #             pv2 = 0
-                    
-        #         self.w2 = pv2 - self.rp_dot[1] - self.rp_dot[1] * abs(self.rp_dot[1])
-                
-        #     else: 
-        #         self.w2 = self.controls.wp2
-                
-        #     self.w1 = pv1 - self.rp_dot[0] - self.rp_dot[0] * abs(self.rp_dot[0])
-            
-        # elif self.pid_control == "disable":
         if self.glide_dir == "D":
             if self.rp[0] >= self.rp1_d:
                 self.w1 = 0.0
                 self.rp_dot = np.array([[0, 0, 0]]).transpose()
             elif self.rp[0] < self.rp1_d:
                 self.w1 = self.controls.wp1
-            
-            if self.rudder == "disable": 
+
+            if self.rudder == "disable":
                 if self.rp[1] >= self.rp2_d:
                     self.w2 = 0.0
                     self.rp_dot = np.array([[0, 0, 0]]).transpose()
                 elif self.rp[1] < self.rp2_d:
-                    self.w2 = self.controls.wp1
-            
-            elif self.rudder == "enable":
-                self.w2 = 0.0
+                    self.w2 = self.controls.wp2
 
-        elif self.glide_dir == "U":
-            self.rp_dot = -self.rp_dot
-            if self.rp[0] <= self.rp1_d:
-                self.w1 = 0.0
-                self.rp_dot = np.array([[0, 0, 0]]).transpose()
-            elif self.rp[0] > self.rp1_d:
-                self.w1 = -self.controls.wp1
-            
-            if self.rudder == "disable":
-                if self.rp[1] <= self.rp2_d:
-                    self.w2 = 0.0
-                    self.rp_dot = np.array([[0, 0, 0]]).transpose()
-                elif self.rp[1] > self.rp2_d:
-                    self.w2 = -self.controls.wp1
-                    
             elif self.rudder == "enable":
                 self.w2 = 0.0
 
         if self.glide_dir == "D":
             self.wp = np.array([[self.w1, self.w2, self.controls.wp3]]).transpose()
-        elif self.glide_dir == "U":
-            self.wp = np.array([[-self.w1, -self.w2, -self.controls.wp3]]).transpose()
 
         self.wb = np.array([[0, 0, 0]]).transpose()
 
@@ -497,14 +373,13 @@ class Dynamics:
         # self.u = self.H @ np.array(
         #     [(-Zp + self.wp).flatten(), (-Zb + self.wb).flatten(), (-Zw + self.ww).flatten()]
         # ).reshape(9,1) # uncomment if mw is not 0
+
         self.u = self.H @ np.array(((-Zp + self.wp), (-Zb + self.wb))).ravel()
         self.u = self.u.reshape(2, 3)
 
         self.u_bar = np.array([self.u[0]]).T
 
         self.u_b = np.array([self.Z3]).T
-
-        # self.u_w = np.array([self.Z3]).T
 
     def set_controls(self):
         self.control_transformation()
@@ -517,8 +392,6 @@ class Dynamics:
             if self.rp[0] <= self.rp1_d:
                 self.u_bar = np.array([self.Z3]).T
 
-        # Write for u_b and u_w as well
-
     def set_eom(self):
         if self.glide_dir == "U":
             self.Pp = self.mm * (
@@ -529,8 +402,6 @@ class Dynamics:
             self.Pp = self.mm * (
                 -self.v + np.cross(self.Omega, self.rp, axis=0) + self.rp_dot
             )
-
-        # self.Pw = self.mw * (self.v + np.cross(self.Omega,self.rw, axis=0) + self.rw_dot)
 
         self.Pb = np.array([[0.0, 0.0, 0.0]]).T
 
@@ -593,6 +464,7 @@ class Dynamics:
                 mb_dot,
                 self.n2_dot,
                 np.array([[self.delta, 0.0, 0.0]]).T
+                # self.wp
             ]
         ).ravel()
 

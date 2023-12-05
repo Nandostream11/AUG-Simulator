@@ -7,7 +7,7 @@ from Modeling3d.dynamics_3D import Dynamics
 
 class ThreeD_Motion:
     def __init__(self, args):
-        self.w1 = []
+        self.wp = []
         self.args = args
         self.mode = self.args.mode
         if self.mode == "3D":
@@ -87,8 +87,6 @@ class ThreeD_Motion:
         self.rb1 = self.vars.rb1
         self.rb2 = self.vars.rb2
         self.rb3 = self.vars.rb3
-
-        # [self.rw1, self.rw2, self.rw3] = [0.0, 0.0, 0.0]
 
         self.glide_angle_deg = self.vars.GLIDE_ANGLE
         self.V_d = self.vars.SPEED
@@ -205,7 +203,7 @@ class ThreeD_Motion:
 
             self.save_json()
 
-            # Initial conditions at every peak of the sawtooth trajectory
+            # Initial conditions for spiral motion
 
             if i == 0:
                 self.z_in = np.concatenate(
@@ -213,13 +211,12 @@ class ThreeD_Motion:
                         [0.0, 0.0, 0.0],
                         [self.Omega0[0], self.Omega0[1], self.Omega0[2]],
                         [self.v1_d, self.v2_d, self.v3_d],
-                        [0.0, 0.0, self.rp3],  # [self.rp1_d, self.rp2_d, self.rp3],
+                        [0.0, 0.0, self.rp3],
                         [self.rb1, self.rb2, self.rb3],
                         [0.0, 0.0, 0.0],
                         [0.0, 0.0, 0.0],
                         [self.mb_d, 0, 0],
                         [self.phi0, self.theta0, self.psi0],
-                        [0, 0, 0]
                     ]
                 ).ravel()
 
@@ -228,14 +225,16 @@ class ThreeD_Motion:
 
             self.t = np.linspace(2000 * (i), 2000 * (i + 1), 1000)
 
-            sol = self.solve_ode(self.z_in[:-3], self.t)
+            sol, w = self.solve_ode(self.z_in, self.t)
 
             if i == 0:
                 self.solver_array = sol.y.T
                 self.total_time = sol.t
+                self.wp = w
             else:
                 self.solver_array = np.concatenate((self.solver_array, sol.y.T))
                 self.total_time = np.concatenate((self.total_time, sol.t))
+                self.wp = np.concatenate((self.wp, w))
 
             if self.mode == "3D":
                 v = math.sqrt(
@@ -264,10 +263,6 @@ class ThreeD_Motion:
                 print("Equilibrium glide speed: {} m/s".format(v))
                 print("Radius : {} m".format(R))
 
-        # import matplotlib.pyplot as plt
-        # breakpoint()
-        # plt.plot(np.linspace(0, 5864, 5864), self.w1); plt.show()
-        
         utils.plots(self.total_time, self.solver_array.T, self.plots)
 
     def save_json(self):
@@ -290,11 +285,6 @@ class ThreeD_Motion:
             "rb1": self.rb1,
             "rb2": self.rb2,
             "rb3": self.rb3,
-            # "rw1": self.rw1,
-            # "rw2": self.rw2,
-            # "rw3": self.rw3,
-            # "Pp1_d": self.Pp1_d,
-            # "Pp3_d": self.Pp3_d,
             "phi0": self.phi0,
             "theta0": self.theta0,
             "psi0": self.psi0,
@@ -331,23 +321,19 @@ class ThreeD_Motion:
             "rudder_angle": self.rudder_angle,
         }
 
-        pid_var = {
-            "theta_prev": self.theta0,
-            # "phi_prev": self.phi0,
-            "delta_prev": 0.0,
-            "delta": self.rudder_angle
-        }
-
         utils.save_json(glide_vars, "vars/3d_glider_variables.json")
-        utils.save_json(pid_var, "vars/pid_variables.json")
 
     def solve_ode(self, z0, time):
         def dvdt(t, y):
-            eom = Dynamics(y)
-            D = eom.set_eom()
-            w = D[-3]
-            self.w1.append(w)
-            return D[:-3]
+            global inner_func
+
+            def inner_func(t, y):
+                eom = Dynamics(y)
+                D = eom.set_eom()
+                return D
+
+            Dr = inner_func(t, y)
+            return Dr[:-3]
 
         sol = solve_ivp(
             dvdt,
@@ -358,7 +344,11 @@ class ThreeD_Motion:
             dense_output=False,
         )
 
-        return sol
+        w = np.array([inner_func(time[i], sol.y.T[i, :]) for i in range(len(time))])[
+            :, -2
+        ]
+
+        return sol, w
 
 
 if __name__ == "__main__":

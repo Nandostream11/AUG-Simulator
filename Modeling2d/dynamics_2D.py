@@ -19,8 +19,6 @@ class Dynamics:
         self.rb_dot = np.array([z[18:21]]).T
         self.mb = z[21]
         self.theta = z[25]
-        
-        # print(math.degrees(self.theta))
 
         self.g, self.I3, self.Z3, self.i_hat, self.j_hat, self.k_hat = utils.constants()
 
@@ -46,51 +44,12 @@ class Dynamics:
 
         self.controls = SLOCUM_PARAMS.CONTROLS
 
-        # if self.glide_dir == "U":
-        #     if self.mb <= self.mb_d:
-        #         self.mb = self.mb_d
-
-        # elif self.glide_dir == "D":
-        #     if self.mb >= self.mb_d:
-        #         self.mb = self.mb_d
-
-        # if self.glide_dir == "U":
-        #     if self.rp[0] <= self.rp1_d:
-        #         self.rp[0] = self.rp1_d
-
-        # elif self.glide_dir == "D":
-        #     if self.rp[0] >= self.rp1_d:
-        #         self.rp[0] = self.rp1_d
-
         self.rp_c = utils.unit_vecs(self.rp)
         self.rb_c = utils.unit_vecs(self.rb)
-        # self.rw_c = utils.unit_vecs(self.rw)
 
         self.set_force_torque()
 
         self.R, self.R_T = self.transformation()
-
-        # if self.glide_dir == "U":
-        #     self.rp_dot = (
-        #         (1 / self.mm) * self.Pp - self.v - np.cross(self.Omega, self.rp, axis=0)
-        #     )
-
-        #     if self.rp[0] <= self.rp1_d:
-        #         self.rp_dot = np.array([self.Z3]).transpose()
-
-        #     else:
-        #         self.rp_dot = -self.rp_dot
-
-        # elif self.glide_dir == "D":
-        #     self.rp_dot = (
-        #         (1 / self.mm) * self.Pp + self.v - np.cross(self.Omega, self.rp, axis=0)
-        #     )
-        #     self.rp_dot[0] = self.rp1_der
-
-        #     if self.rp[0] >= self.rp1_d:
-        #         self.rp_dot = np.array([self.Z3]).transpose()
-
-        # self.rb_dot = np.array([self.Z3]).transpose()
 
         self.m0 = self.mh + self.mw + self.mb + self.mm - self.m
 
@@ -120,9 +79,6 @@ class Dynamics:
         self.rp3 = var["rp3"]
         self.rb1 = var["rb1"]
         self.rb3 = var["rb3"]
-        # self.rw1 = var["rw1"]
-        # self.rw2 = var["rw2"]
-        # self.rw3 = var["rw3"]
         self.phi = var["phi"]
         self.theta0 = var["theta0"]
         self.psi = var["psi"]
@@ -237,7 +193,7 @@ class Dynamics:
         self.wb = np.array([[0, 0, 0]]).transpose()
 
         self.ww = np.array([[0, 0, 0]]).transpose()
-                
+
         # 3x3 matrix when mw != 0
         # self.F = np.array(
         #     [
@@ -398,8 +354,6 @@ class Dynamics:
 
         self.u_b = np.array([self.Z3]).T
 
-        # self.u_w = np.array([self.Z3]).T
-
     def set_controls(self):
         self.control_transformation()
 
@@ -411,8 +365,6 @@ class Dynamics:
             if self.rp[0] <= self.rp1_d:
                 self.u_bar = np.array([[0.0, 0.0, 0.0]]).T
 
-        # Write for u_b and u_w as well
-
     def set_eom(self):
         if self.glide_dir == "U":
             self.Pp = self.mm * (
@@ -423,8 +375,6 @@ class Dynamics:
             self.Pp = self.mm * (
                 -self.v + np.cross(self.Omega, self.rp, axis=0) + self.rp_dot
             )
-
-        # self.Pw = self.mw * (self.v + np.cross(self.Omega,self.rw, axis=0) + self.rw_dot)
 
         self.Pb = np.array([[0.0, 0.0, 0.0]]).T
 
@@ -486,7 +436,7 @@ class Dynamics:
                 rb_ddot,
                 mb_dot,
                 np.array([self.n2_dot[1]]).T,
-                self.wp
+                self.wp,
             ]
         ).ravel()
 

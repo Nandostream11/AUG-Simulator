@@ -77,7 +77,7 @@ def PID(kp, ki, kd, setpoint, measured, integral, dt, derivative):
     I = ki * integral
     D = kd * derivative
 
-    pid = P + I + D  
+    pid = P + I + D
 
     return pid, integral, error
 
@@ -106,7 +106,7 @@ def plots(t, x, plot):
         ax = plt.axes(projection="3d")
         ax.plot3D(x[0], x[1], x[2], "gray")
         x1, y1, z1 = [0, 100], [0, 400], [0, 70]
-        ax.plot(x1, y1, z1, color='red')
+        ax.plot(x1, y1, z1, color="red")
         ax.set_xlabel("x (m)")
         ax.set_ylabel("y (m)")
         ax.set_zlabel("z (m)")

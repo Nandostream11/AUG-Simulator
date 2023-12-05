@@ -29,7 +29,7 @@ An Autonomous Underwater Glider Simulator.
 options:
   -h, --help            show this help message and exit
   -i, --info            give full information in each cycle
-  -m MODE, --mode MODE  set mode as 2D or 3D
+  -m MODE, --mode MODE  set mode as 2D, 3D, or waypoint
   -c CYCLE, --cycle CYCLE
                         number of desired cycles in sawtooth trajectory
   -g GLIDER, --glider GLIDER
@@ -48,12 +48,16 @@ options:
                         omega2, omega3, vel, v1, v2, v3, rp1, rp2, rp3, mb,
                         phi, theta, psi]
 
+
 ```
 
 ## TO-Do
 - [x] Vertical plane simulations
 - [x] 3D simulations
-- [x] Rudder
-- [x] PID
 - [x] Params in YAML/py file
+- [x] Rudder implementation
+- [x] PID pitch control
+- [x] PID heading control
+- [ ] Waypoint following
+
 

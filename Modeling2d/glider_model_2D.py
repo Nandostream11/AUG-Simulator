@@ -73,8 +73,6 @@ class Vertical_Motion:
         self.rb1 = self.vars.rb1
         self.rb3 = self.vars.rb3
 
-        # [self.rw1, self.rw2, self.rw3] = [0.0, 0.0, 0.0]
-
         self.glide_angle_deg = self.args.angle
         self.V_d = self.args.speed
         self.ballast_rate = self.vars.BALLAST_RATE
@@ -194,7 +192,7 @@ class Vertical_Motion:
                         [0.0, 0.0, 0.0],
                         [0.0, 0.0, 0.0],
                         [self.v1_d, 0.0, self.v3_d],
-                        [0.0, 0.0, self.rp3],  # [self.rp1_d, 0.0, self.rp3],
+                        [0.0, 0.0, self.rp3],
                         [self.rb1, 0.0, self.rb3],
                         [0.0, 0.0, 0.0],
                         [0.0, 0.0, 0.0],
@@ -219,10 +217,6 @@ class Vertical_Motion:
                 self.total_time = np.concatenate((self.total_time, sol.t))
                 self.wp = np.concatenate((self.wp, w))
 
-        import matplotlib.pyplot as plt
-        breakpoint()
-        # plt.plot(np.linspace(0, 5864, 5864), self.w1); plt.show()
-
         utils.plots(self.total_time, self.solver_array.T, self.plots)
 
     def save_json(self):
@@ -241,9 +235,6 @@ class Vertical_Motion:
             "rp3": self.rp3,
             "rb1": self.rb1,
             "rb3": self.rb3,
-            # "rw1": self.rw1,
-            # "rw2": self.rw2,
-            # "rw3": self.rw3,
             "phi": self.phi,
             "theta0": self.theta0,
             "psi": self.psi,

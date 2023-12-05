@@ -87,16 +87,12 @@ class Waypoint_Following:
         self.rb1 = self.vars.rb1
         self.rb2 = self.vars.rb2
         self.rb3 = self.vars.rb3
-        
-        self.initial_pos = [0.0, 0.0, 0.0]
-        self.desired_pos = [100, 400, 70]
-        # self.desired_pos = [100, 10, 0]
 
-        # [self.rw1, self.rw2, self.rw3] = [0.0, 0.0, 0.0]
+        # self.initial_pos = [0.0, 0.0, 0.0]
+        # self.desired_pos = [100, 400, 70]
 
-        # self.glide_angle_deg = self.vars.GLIDE_ANGLE
-        self.glide_angle_deg = math.degrees(math.atan((self.desired_pos[2] - self.initial_pos[2])/(self.desired_pos[0] - self.initial_pos[0])))
-        self.psi_d = math.radians(90) - math.atan((self.desired_pos[0] - self.initial_pos[0])/(self.desired_pos[1] - self.initial_pos[1]))
+        self.glide_angle_deg = self.vars.GLIDE_ANGLE
+        self.psi_d = math.radians(40)
         self.V_d = 0.3
         self.ballast_rate = self.vars.BALLAST_RATE
 
@@ -105,7 +101,7 @@ class Waypoint_Following:
     def set_first_run_params(self):
         self.phi0 = math.radians(self.vars.PHI)
         self.theta0 = -math.radians(self.vars.THETA)
-        self.psi0 = math.radians(90)
+        self.psi0 = math.radians(self.vars.PSI)
         self.Omega0 = [0.0046, 0.0025, 0.0077]
 
     def set_desired_trajectory(self):
@@ -173,7 +169,7 @@ class Waypoint_Following:
                     )
                 )
             )
-            
+
             self.beta_d = math.radians(self.vars.BETA)
 
             self.mb_d = (self.m - self.mh - self.mm) + (1 / self.g) * (
@@ -184,7 +180,7 @@ class Waypoint_Following:
             self.m0_d = self.mb_d + self.mh + self.mm - self.m
 
             self.theta_d = self.e_i_d + self.alpha_d
-                        
+
             self.v1_d = self.V_d * math.cos(self.alpha_d) * math.cos(self.beta_d)
             self.v2_d = self.V_d * math.sin(self.beta_d)
             self.v3_d = self.V_d * math.sin(self.alpha_d) * math.cos(self.beta_d)
@@ -210,16 +206,16 @@ class Waypoint_Following:
                 )
 
             self.save_json()
-            
-            # Initial conditions at every peak of the sawtooth trajectory
+
+            # Initial conditions
 
             if i == 0:
                 self.z_in = np.concatenate(
                     [
                         [0.0, 0.0, 0.0],
-                        [0.0, 0.0, 0.0], # [self.Omega0[0], self.Omega0[1], self.Omega0[2]],
+                        [0.0, 0.0, 0.0],
                         [self.v1_d, self.v2_d, self.v3_d],
-                        [0.0, 0.0, self.rp3],  # [self.rp1_d, self.rp2_d, self.rp3],
+                        [0.0, 0.0, self.rp3],
                         [self.rb1, self.rb2, self.rb3],
                         [0.0, 0.0, 0.0],
                         [0.0, 0.0, 0.0],
@@ -271,10 +267,13 @@ class Waypoint_Following:
                 print("Equilibrium glide speed: {} m/s".format(v))
                 print("Radius : {} m".format(R))
 
-        import matplotlib.pyplot as plt
-        breakpoint()
-        # plt.plot(np.linspace(0, 5864, 5864), self.w1); plt.show()
-        
+        # import matplotlib.pyplot as plt
+        # plt.plot(self.solver_array.T[0], math.tan(self.psi_d) * self.solver_array.T[0])
+        # plt.plot(self.solver_array.T[0], self.solver_array.T[1])
+        # plt.xlabel('x (m)')
+        # plt.ylabel('y (m)')
+        # plt.show()
+
         utils.plots(self.total_time, self.solver_array.T, self.plots)
 
     def save_json(self):
@@ -297,9 +296,6 @@ class Waypoint_Following:
             "rb1": self.rb1,
             "rb2": self.rb2,
             "rb3": self.rb3,
-            # "rw1": self.rw1,
-            # "rw2": self.rw2,
-            # "rw3": self.rw3,
             "phi0": self.phi0,
             "theta0": self.theta0,
             "psi0": self.psi0,
@@ -336,16 +332,10 @@ class Waypoint_Following:
             "rudder_angle": self.rudder_angle,
             "psi_d": self.psi_d,
             "delta": 0.0,
-            "desired_y": self.desired_pos[1]
+            "desired_y": self.desired_pos[1],
         }
 
-        pid_var = {
-            # "theta_prev": self.theta0,
-            # "phi_prev": self.phi0,
-            "psi_prev": self.psi0
-            # "delta_prev": 0.0,
-            # "delta": self.rudder_angle
-        }
+        pid_var = {"psi_prev": self.psi0}
 
         utils.save_json(glide_vars, "vars/waypoint_glider_variables.json")
         utils.save_json(pid_var, "vars/pid_variables.json")
@@ -358,7 +348,7 @@ class Waypoint_Following:
                 eom = Dynamics(y)
                 D = eom.set_eom()
                 return D
-            
+
             Dr = inner_func(t, y)
             return Dr[:-3]
 
@@ -372,7 +362,7 @@ class Waypoint_Following:
             atol=1e-7,
             rtol=1e-4,
         )
-        
+
         w = np.array([inner_func(time[i], sol.y.T[i, :]) for i in range(len(time))])[
             :, -3
         ]

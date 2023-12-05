@@ -46,7 +46,7 @@ class SLOCUM_PARAMS:
 
     class VARIABLES:
         GLIDE_ANGLE = 25  # degrees
-        SPEED = 0.8  # speed of glider in vertical plane in m/s
+        SPEED = 0.3  # 0.8  # speed of glider in vertical plane in m/s
         BALLAST_RATE = 0.001  # Ballast rate input in kg/s
 
         # Position of internal mass mm
@@ -70,12 +70,12 @@ class SLOCUM_PARAMS:
         PSI = 0.0  # yaw angle in degrees
 
         BETA = 1.0  # sideslip angle in degrees
-        
-        RUDDER = 10.0 # rudder angle
+
+        RUDDER = 10.0  # rudder angle
 
     class CONTROLS:
         wp1 = 0.01  # m/s2
-        wp2 = 0.0
+        wp2 = 0.01
         wp3 = 0.0
 
         wb1 = 0.0
