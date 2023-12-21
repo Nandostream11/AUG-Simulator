@@ -21,9 +21,11 @@ class Dynamics:
         self.theta = z[25]
 
         self.g, self.I3, self.Z3, self.i_hat, self.j_hat, self.k_hat = utils.constants()
+        
+        print(math.degrees(self.theta))
 
         if self.pid_control == "enable":
-            self.rp1, self.theta_prev, self.error = utils.PID(
+            self.w1, self.theta_prev, self.error = utils.PID(
                 0.05,
                 0.0,
                 0.0005,
@@ -33,6 +35,9 @@ class Dynamics:
                 0.1,
                 -self.Omega[1],
             )
+            
+            # breakpoint()
+            # print(self.rp1)
 
             pid_vars = {
                 "theta_prev": self.theta_prev.tolist(),
@@ -151,35 +156,6 @@ class Dynamics:
         return R, R_T
 
     def control_transformation(self):
-        if self.pid_control == "enable":
-            if self.glide_dir == "D":
-                rp1_err = self.rp[0] - self.rp1_d - abs(self.rp1)
-            elif self.glide_dir == "U":
-                self.rp_dot = -self.rp_dot
-                rp1_err = self.rp[0] - self.rp1_d + abs(self.rp1)
-
-            if rp1_err != 0 and abs(rp1_err) > 0.001:
-                r = -(rp1_err / abs(rp1_err)) * self.controls.wp1
-            else:
-                r = 0
-
-            self.w1 = r - self.rp_dot[0] - self.rp_dot[0] * abs(self.rp_dot[0])
-
-        elif self.pid_control == "disable":
-            if self.glide_dir == "D":
-                if self.rp[0] >= self.rp1_d:
-                    self.w1 = 0.0
-                    self.rp_dot = np.array([[0, 0, 0]]).transpose()
-                else:
-                    self.w1 = self.controls.wp1
-
-            elif self.glide_dir == "U":
-                self.rp_dot = -self.rp_dot
-                if self.rp[0] <= self.rp1_d:
-                    self.w1 = 0.0
-                    self.rp_dot = np.array([[0, 0, 0]]).transpose()
-                else:
-                    self.w1 = -self.controls.wp1
 
         if self.glide_dir == "D":
             self.wp = np.array(

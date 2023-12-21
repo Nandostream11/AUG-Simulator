@@ -115,9 +115,10 @@ class Vertical_Motion:
         )
 
         l = len(self.E_i_d)
+        l = 1
         for i in range(l):
             self.e_i_d = self.E_i_d[i]
-
+        
             print(
                 "\nIteration {} | Desired glide angle in deg = {}".format(
                     i, math.degrees(self.e_i_d)

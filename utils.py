@@ -105,7 +105,7 @@ def plots(t, x, plot):
     if plot == ["3D"]:
         ax = plt.axes(projection="3d")
         ax.plot3D(x[0], x[1], x[2], "gray")
-        x1, y1, z1 = [0, 100], [0, 400], [0, 70]
+        x1, y1, z1 = [0, 200], [0, 70], [0, 70]
         ax.plot(x1, y1, z1, color="red")
         ax.set_xlabel("x (m)")
         ax.set_ylabel("y (m)")

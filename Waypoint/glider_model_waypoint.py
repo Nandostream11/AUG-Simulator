@@ -88,11 +88,12 @@ class Waypoint_Following:
         self.rb2 = self.vars.rb2
         self.rb3 = self.vars.rb3
 
-        # self.initial_pos = [0.0, 0.0, 0.0]
-        # self.desired_pos = [100, 400, 70]
+        self.initial_pos = [0.0, 0.0, 0.0]
+        self.desired_pos = [200, 70, 60]
 
-        self.glide_angle_deg = self.vars.GLIDE_ANGLE
-        self.psi_d = math.radians(40)
+        # self.glide_angle_deg = self.vars.GLIDE_ANGLE
+        self.glide_angle_deg = math.degrees(math.atan((self.desired_pos[2] - self.initial_pos[2])/(self.desired_pos[0] - self.initial_pos[0])))
+        self.psi_d = math.radians(90) - math.atan((self.desired_pos[0] - self.initial_pos[0])/(self.desired_pos[1] - self.initial_pos[1]))
         self.V_d = 0.3
         self.ballast_rate = self.vars.BALLAST_RATE
 
@@ -133,7 +134,7 @@ class Waypoint_Following:
                 )
             )
         )
-
+        
         l = len(self.E_i_d)
         for i in range(l):
             self.e_i_d = self.E_i_d[i]
@@ -227,7 +228,7 @@ class Waypoint_Following:
             else:
                 self.z_in = self.solver_array[-1]
 
-            self.t = np.linspace(4000 * (i), 4000 * (i + 1), 2000)
+            self.t = np.linspace(1000 * (i), 1000 * (i + 1), 500)
 
             sol, w = self.solve_ode(self.z_in, self.t)
 
@@ -267,12 +268,13 @@ class Waypoint_Following:
                 print("Equilibrium glide speed: {} m/s".format(v))
                 print("Radius : {} m".format(R))
 
-        # import matplotlib.pyplot as plt
-        # plt.plot(self.solver_array.T[0], math.tan(self.psi_d) * self.solver_array.T[0])
-        # plt.plot(self.solver_array.T[0], self.solver_array.T[1])
-        # plt.xlabel('x (m)')
-        # plt.ylabel('y (m)')
-        # plt.show()
+        import matplotlib.pyplot as plt
+        plt.plot(self.solver_array.T[0], math.tan(self.psi_d) * self.solver_array.T[0])
+        plt.plot(self.solver_array.T[0], self.solver_array.T[1])
+        plt.xlabel('x (m)')
+        plt.ylabel('y (m)')
+        # plt.plot(self.total_time, self.wp)
+        plt.show()
 
         utils.plots(self.total_time, self.solver_array.T, self.plots)
 
@@ -330,9 +332,7 @@ class Waypoint_Following:
             "pid_control": self.pid_control,
             "rudder": self.rudder,
             "rudder_angle": self.rudder_angle,
-            "psi_d": self.psi_d,
-            "delta": 0.0,
-            "desired_y": self.desired_pos[1],
+            "desired_pos": self.desired_pos,
         }
 
         pid_var = {"psi_prev": self.psi0}

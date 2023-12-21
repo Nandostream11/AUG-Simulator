@@ -58,6 +58,6 @@ options:
 - [x] Rudder implementation
 - [x] PID pitch control
 - [x] PID heading control
-- [ ] Waypoint following
+- [x] Waypoint following
 
 
