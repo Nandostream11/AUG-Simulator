@@ -19,6 +19,7 @@ class Dynamics:
         self.rb_dot = np.array([z[18:21]]).T
         self.mb = z[21]
         self.theta = z[25]
+        self.w1 = 0.0  # <-- Add this line before the PID block
 
         self.g, self.I3, self.Z3, self.i_hat, self.j_hat, self.k_hat = utils.constants()
         
